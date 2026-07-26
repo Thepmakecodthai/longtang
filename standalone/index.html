@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>นำทางภายในอาคาร ICT — มหาวิทยาลัยพะเยา</title>
+<style>
+  :root {
+    --bg: #eef1f5;
+    --card: #ffffff;
+    --primary: #1565c0;
+    --primary-light: #e3f2fd;
+    --success: #2e7d32;
+    --success-light: #e8f5e9;
+    --danger: #d32f2f;
+    --danger-light: #ffebee;
+    --warning: #f57f17;
+    --text: #1a1a2e;
+    --text-secondary: #5f6368;
+    --border: #dadce0;
+    --shadow: 0 2px 8px rgba(0,0,0,0.08);
+    --radius: 12px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans Thai', 'Sarabun', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+  header {
+    background: linear-gradient(135deg, #1565c0 0%, #0d47a1 100%);
+    color: white;
+    padding: 18px 24px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  }
+  header .logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  header .logo-icon {
+    width: 44px; height: 44px;
+    background: rgba(255,255,255,0.15);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+  }
+  header h1 { font-size: 22px; font-weight: 700; letter-spacing: -0.3px; }
+  header .subtitle { font-size: 13px; opacity: 0.85; display: block; font-weight: 400; margin-top: 2px; }
+
+  .container { max-width: 1400px; margin: 0 auto; padding: 16px; width: 100%; flex: 1; display: flex; flex-direction: column; gap: 12px; }
+
+  /* Form */
+  .form-card {
+    background: var(--card);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 20px;
+  }
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr auto;
+    gap: 12px;
+    align-items: end;
+  }
+  .field { display: flex; flex-direction: column; gap: 5px; }
+  .field label {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .field select {
+    padding: 11px 14px;
+    border: 2px solid var(--border);
+    border-radius: 10px;
+    font-size: 15px;
+    background: white url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M6 8L1 3h10z' fill='%235f6368'/%3E%3C/svg%3E") no-repeat right 12px center;
+    appearance: none;
+    -webkit-appearance: none;
+    cursor: pointer;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    width: 100%;
+    padding-right: 36px;
+  }
+  .field select:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 4px rgba(21,101,192,0.12);
+  }
+  .field select.has-value-start { border-color: var(--success); }
+  .field select.has-value-end { border-color: var(--danger); }
+  .btn-go {
+    background: linear-gradient(135deg, #1565c0, #0d47a1);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 11px 32px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.12s, box-shadow 0.2s;
+    white-space: nowrap;
+    height: 46px;
+    box-shadow: 0 2px 6px rgba(21,101,192,0.3);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .btn-go:hover { box-shadow: 0 4px 12px rgba(21,101,192,0.4); }
+  .btn-go:active { transform: scale(0.97); }
+  .btn-go:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  /* Map area */
+  .map-card {
+    background: var(--card);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Floor tabs */
+  .floor-tabs {
+    display: flex;
+    background: #f8f9fa;
+    border-bottom: 1px solid var(--border);
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .floor-tab {
+    padding: 14px 28px;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    border: none;
+    background: transparent;
+    color: var(--text-secondary);
+    transition: all 0.2s;
+    border-bottom: 3px solid transparent;
+    white-space: nowrap;
+    flex: 1;
+    text-align: center;
+  }
+  .floor-tab:hover { background: #e8eaed; }
+  .floor-tab.active {
+    color: var(--primary);
+    border-bottom-color: var(--primary);
+    background: white;
+    font-weight: 600;
+  }
+  .floor-tab .badge {
+    display: inline-block;
+    background: var(--border);
+    color: var(--text-secondary);
+    font-size: 10px;
+    border-radius: 10px;
+    padding: 2px 8px;
+    margin-left: 6px;
+    font-weight: 400;
+  }
+  .floor-tab.active .badge {
+    background: var(--primary-light);
+    color: var(--primary);
+  }
+  .floor-tab.has-route {
+    position: relative;
+  }
+  .floor-tab.has-route::after {
+    content: '●';
+    position: absolute;
+    top: 4px;
+    right: 8px;
+    font-size: 10px;
+    color: var(--primary);
+  }
+
+  /* Map viewport */
+  .map-view {
+    position: relative;
+    flex: 1;
+    min-height: 500px;
+    background: #eef1f5;
+    overflow: hidden;
+  }
+  .map-view img {
+    display: block;
+    width: 100%;
+    height: auto;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  /* SVG overlay */
+  .route-overlay {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+  }
+
+  /* Markers & labels on map */
+  .map-label {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    z-index: 8;
+    font-weight: 700;
+    font-size: 13px;
+    color: rgba(0,0,0,0.5);
+    text-shadow: 0 0 4px white, 0 0 8px white;
+    white-space: nowrap;
+  }
+  .map-marker {
+    position: absolute;
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    border: 3px solid white;
+    transform: translate(-50%, -50%);
+    z-index: 12;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.35);
+    pointer-events: none;
+  }
+  .map-marker.start { background: var(--success); }
+  .map-marker.end { background: var(--danger); }
+  .map-icon-elev {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    z-index: 6;
+    pointer-events: none;
+    font-size: 20px;
+    filter: drop-shadow(0 1px 3px rgba(0,0,0,0.4));
+  }
+
+  /* Route info bar */
+  .route-bar {
+    background: var(--primary-light);
+    border-radius: 10px;
+    padding: 12px 18px;
+    display: none;
+    gap: 12px;
+    flex-wrap: wrap;
+    align-items: center;
+    font-size: 14px;
+  }
+  .route-bar.show { display: flex; }
+  .route-bar .tag {
+    background: white;
+    border-radius: 6px;
+    padding: 4px 10px;
+    font-weight: 600;
+    font-size: 13px;
+  }
+  .route-bar .tag.start-tag { color: var(--success); }
+  .route-bar .tag.end-tag { color: var(--danger); }
+  .route-bar .sep { color: var(--text-secondary); }
+  .route-bar .stat { color: var(--primary); font-weight: 500; }
+
+  /* Directions */
+  .dir-card {
+    background: var(--card);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    display: none;
+  }
+  .dir-card.show { display: block; }
+  .dir-header {
+    padding: 16px 20px;
+    background: #fafafa;
+    border-bottom: 1px solid var(--border);
+    font-weight: 600;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .dir-steps { padding: 4px 0; }
+  .dir-step {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 12px 20px;
+    border-bottom: 1px solid #f0f0f0;
+    transition: background 0.15s;
+    cursor: pointer;
+  }
+  .dir-step:last-child { border-bottom: none; }
+  .dir-step:hover { background: #f8f9fa; }
+  .dir-step:active { background: #e8eaed; }
+  .step-num {
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+    flex-shrink: 0;
+    color: white;
+  }
+  .step-num.num-walk { background: var(--success); }
+  .step-num.num-lift { background: var(--primary); }
+  .step-num.num-arrive { background: var(--warning); }
+  .step-content { font-size: 14px; line-height: 1.5; padding-top: 4px; flex: 1; }
+  .step-content .hl { font-weight: 700; }
+  .step-content .hl.start-hl { color: var(--success); }
+  .step-content .hl.end-hl { color: var(--danger); }
+  .step-content .hl.floor-hl { color: var(--primary); }
+  .step-footnote {
+    font-size: 11px;
+    color: var(--text-secondary);
+    margin-top: 2px;
+  }
+
+  /* Empty state */
+  .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 450px;
+    color: var(--text-secondary);
+    padding: 40px 20px;
+    text-align: center;
+  }
+  .empty-state .icon { font-size: 72px; margin-bottom: 16px; opacity: 0.4; }
+  .empty-state h3 { font-size: 20px; margin-bottom: 8px; color: var(--text); }
+  .empty-state p { font-size: 14px; max-width: 400px; line-height: 1.6; }
+
+  /* Clear button */
+  .btn-clear {
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 6px 16px;
+    font-size: 13px;
+    cursor: pointer;
+    color: var(--text-secondary);
+    transition: all 0.2s;
+  }
+  .btn-clear:hover { background: #f5f5f5; border-color: #bbb; }
+
+  /* Responsive */
+  @media (max-width: 900px) {
+    .form-grid { grid-template-columns: 1fr 1fr; }
+    .btn-go { grid-column: span 2; height: 44px; justify-content: center; }
+  }
+  @media (max-width: 600px) {
+    .form-grid { grid-template-columns: 1fr; }
+    .btn-go { grid-column: span 1; }
+    .floor-tab { padding: 12px 12px; font-size: 13px; }
+    .floor-tab .badge { display: none; }
+    header { padding: 14px 16px; }
+    header h1 { font-size: 18px; }
+    header .logo-icon { width: 36px; height: 36px; font-size: 18px; }
+    .container { padding: 10px; gap: 10px; }
+    .form-card { padding: 14px; }
+    .dir-step { padding: 10px 14px; }
+    .dir-header { padding: 14px 16px; }
+    .map-view { min-height: 300px; }
+  }
+  @media (max-width: 400px) {
+    .floor-tab { padding: 10px 8px; font-size: 12px; }
+    .route-bar { font-size: 12px; padding: 10px 12px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">🏛️</div>
+    <div>
+      <h1>ICT Navigator</h1>
+      <span class="subtitle">มหาวิทยาลัยพะเยา · ระบบนำทางภายในอาคาร ICT</span>
+    </div>
+  </div>
+</header>
+
+<div class="container">
+
+  <!-- Selectors -->
+  <div class="form-card">
+    <div class="form-grid">
+      <div class="field">
+        <label>🟢 จุดเริ่มต้น</label>
+        <select id="startSelect"><option value="">— เลือกห้องเริ่มต้น —</option></select>
+      </div>
+      <div class="field">
+        <label>🔴 จุดหมายปลายทาง</label>
+        <select id="endSelect"><option value="">— เลือกห้องปลายทาง —</option></select>
+      </div>
+      <button class="btn-go" id="goBtn">🔎 ค้นหาเส้นทาง</button>
+    </div>
+  </div>
+
+  <!-- Route info bar -->
+  <div class="route-bar" id="routeBar"></div>
+
+  <!-- Map -->
+  <div class="map-card">
+    <div class="floor-tabs" id="floorTabs">
+      <button class="floor-tab" data-floor="1">ชั้น 1 <span class="badge">ICT11xx</span></button>
+      <button class="floor-tab" data-floor="2">ชั้น 2 <span class="badge">ICT12xx</span></button>
+      <button class="floor-tab" data-floor="3">ชั้น 3 <span class="badge">ICT13xx</span></button>
+      <button class="floor-tab" data-floor="4">ชั้น 4 <span class="badge">ICT14xx</span></button>
+    </div>
+
+    <div class="map-view" id="mapView">
+      <div class="empty-state" id="emptyState">
+        <div class="icon">🗺️</div>
+        <h3>เริ่มค้นหาเส้นทาง</h3>
+        <p>เลือกจุดเริ่มต้นและจุดหมายปลายทางด้านบน<br>จากนั้นกด <strong>"ค้นหาเส้นทาง"</strong> เพื่อดูแผนที่นำทาง</p>
+      </div>
+      <img id="floorImg1" src="ict/floor1.png" alt="ชั้น 1" style="display:none" data-floor="1">
+      <img id="floorImg2" src="ict/floor2.png" alt="ชั้น 2" style="display:none" data-floor="2">
+      <img id="floorImg3" src="ict/floor3.png" alt="ชั้น 3" style="display:none" data-floor="3">
+      <img id="floorImg4" src="ict/floor4.png" alt="ชั้น 4" style="display:none" data-floor="4">
+      <svg class="route-overlay" id="routeOverlay"></svg>
+      <div class="map-marker start" id="startMarker" style="display:none"></div>
+      <div class="map-marker end" id="endMarker" style="display:none"></div>
+    </div>
+  </div>
+
+  <!-- Directions -->
+  <div class="dir-card" id="dirCard">
+    <div class="dir-header">📋 เส้นทางแนะนำ <span id="dirSummary" style="font-weight:400;font-size:13px;color:var(--text-secondary)"></span></div>
+    <div class="dir-steps" id="dirSteps"></div>
+  </div>
+
+</div>
+
+<script>
+// =============================================================
+// DATA: All rooms on each floor with % coordinates
+// Image base: 2048 x 1448 px → coordinates as % of width/height
+// =============================================================
+
+const FLOOR_DATA = {
+  1: {
+    rooms: {
+      "ICT1112": { x: 5.5, y: 28 },
+      "ICT1111": { x: 5.5, y: 40 },
+      "ICT1110": { x: 5.5, y: 52 },
+      "ICT1109": { x: 5.5, y: 64 },
+      "ICT1108": { x: 5.5, y: 76 },
+      "ICT1107": { x: 9,   y: 47 },
+      "ICT1106": { x: 88,  y: 20 },
+      "ICT1105": { x: 88,  y: 32 },
+      "ICT1104": { x: 88,  y: 44 },
+      "ICT1104/1": { x: 83, y: 44 },
+      "ICT1103": { x: 88,  y: 56 },
+      "ICT1103/1": { x: 83, y: 56 },
+      "ICT1102": { x: 88,  y: 68 },
+      "ICT1102/1": { x: 83, y: 68 }
+    },
+    elevator: { x: 27, y: 22, label: "ลิฟต์ซ้าย" },
+    elevator2: { x: 67, y: 22, label: "ลิฟต์ขวา" },
+    stairs: [
+      { x: 27, y: 22, label: "บันได" },
+      { x: 67, y: 22, label: "บันได" }
+    ],
+    corridor: [
+      { x: 10, y: 46 },
+      { x: 27, y: 24 },
+      { x: 50, y: 24 },
+      { x: 67, y: 24 },
+      { x: 83, y: 24 }
+    ]
+  },
+  2: {
+    rooms: {
+      "ICT1247": { x: 10,  y: 18 },
+      "ICT1241": { x: 8,   y: 40 },
+      "ICT1241/1": { x: 5, y: 40 },
+      "ICT1235": { x: 8,   y: 52 },
+      "ICT1235/1": { x: 5, y: 52 },
+      "ICT1229": { x: 8,   y: 64 },
+      "ICT1224": { x: 8,   y: 76 },
+      "ICT1219": { x: 90,  y: 72 },
+      "ICT1213": { x: 90,  y: 58 },
+      "ICT1207": { x: 90,  y: 44 },
+      "ICT1202": { x: 90,  y: 30 }
+    },
+    elevator: { x: 18, y: 30, label: "ลิฟต์ซ้าย" },
+    elevator2: { x: 78, y: 30, label: "ลิฟต์ขวา" },
+    stairs: [
+      { x: 18, y: 30, label: "บันได" },
+      { x: 78, y: 30, label: "บันได" }
+    ],
+    corridor: [
+      { x: 12, y: 55 },
+      { x: 18, y: 32 },
+      { x: 50, y: 26 },
+      { x: 78, y: 32 },
+      { x: 86, y: 55 }
+    ]
+  },
+  3: {
+    rooms: {
+      "ICT1352": { x: 12,  y: 18 },
+      "ICT1355": { x: 32,  y: 10 },
+      "ICT1356": { x: 50,  y: 10 },
+      "ICT1357": { x: 68,  y: 10 },
+      "ICT1359": { x: 50,  y: 24 },
+      "ICT1340": { x: 10,  y: 52 },
+      "ICT1334": { x: 10,  y: 64 },
+      "ICT1328": { x: 22,  y: 75 },
+      "ICT1323": { x: 38,  y: 75 },
+      "ICT1318": { x: 55,  y: 75 },
+      "ICT1312": { x: 72,  y: 75 },
+      "ICT1307": { x: 85,  y: 65 },
+      "ICT1302": { x: 85,  y: 52 }
+    },
+    elevator: { x: 35, y: 28, label: "ลิฟต์ซ้าย" },
+    elevator2: { x: 78, y: 28, label: "ลิฟต์ขวา" },
+    stairs: [
+      { x: 35, y: 28, label: "บันได" },
+      { x: 78, y: 28, label: "บันได" }
+    ],
+    corridor: [
+      { x: 14, y: 40 },
+      { x: 22, y: 30 },
+      { x: 35, y: 30 },
+      { x: 50, y: 28 },
+      { x: 78, y: 30 },
+      { x: 82, y: 55 }
+    ]
+  },
+  4: {
+    rooms: {
+      "ICT1439":   { x: 8,  y: 22 },
+      "ICT1434":   { x: 8,  y: 36 },
+      "ICT1429":   { x: 8,  y: 50 },
+      "ICT1424":   { x: 8,  y: 64 },
+      "ICT1419":   { x: 88, y: 22 },
+      "ICT1419/1": { x: 83, y: 22 },
+      "ICT1413":   { x: 88, y: 36 },
+      "ICT1413/1": { x: 83, y: 36 },
+      "ICT1407":   { x: 88, y: 50 },
+      "ICT1402":   { x: 88, y: 64 }
+    },
+    elevator: { x: 22, y: 20, label: "ลิฟต์ซ้าย" },
+    elevator2: { x: 75, y: 20, label: "ลิฟต์ขวา" },
+    stairs: [
+      { x: 22, y: 20, label: "บันได" },
+      { x: 75, y: 20, label: "บันได" }
+    ],
+    corridor: [
+      { x: 12, y: 42 },
+      { x: 22, y: 22 },
+      { x: 50, y: 18 },
+      { x: 75, y: 22 },
+      { x: 82, y: 42 }
+    ]
+  }
+};
+
+// ============ Room list for dropdowns ============
+const ALL_ROOMS = [];
+for (let f = 1; f <= 4; f++) {
+  const floor = FLOOR_DATA[f];
+  Object.keys(floor.rooms).sort().forEach(r => {
+    ALL_ROOMS.push({ id: r, floor: f, label: `${r} (ชั้น ${f})` });
+  });
+}
+
+// Populate selects
+const startSel = document.getElementById('startSelect');
+const endSel = document.getElementById('endSelect');
+ALL_ROOMS.forEach(r => {
+  startSel.appendChild(new Option(r.label, r.id));
+  endSel.appendChild(new Option(r.label, r.id));
+});
+// Add change listeners for visual feedback
+startSel.addEventListener('change', () => {
+  startSel.className = startSel.value ? 'has-value-start' : '';
+});
+endSel.addEventListener('change', () => {
+  endSel.className = endSel.value ? 'has-value-end' : '';
+});
+
+// ============ Geo helpers ============
+function dist(a, b) { return Math.hypot(a.x - b.x, a.y - b.y); }
+
+function nearestElev(floor, roomKey) {
+  const room = floor.rooms[roomKey];
+  if (!room) return floor.elevator;
+  const d1 = dist(room, floor.elevator);
+  const d2 = dist(room, floor.elevator2);
+  return d1 <= d2 ? floor.elevator : floor.elevator2;
+}
+
+// Build path: room → corridor → corridor → room
+function buildPath(floor, fromKey, toKey) {
+  const from = floor.rooms[fromKey];
+  const to = floor.rooms[toKey];
+  if (!from || !to) return [];
+  const corr = floor.corridor;
+  // nearest corr point to from
+  let ci = 0, cid = Infinity;
+  for (let i = 0; i < corr.length; i++) { const d = dist(from, corr[i]); if (d < cid) { cid = d; ci = i; } }
+  let cj = 0, cjd = Infinity;
+  for (let i = 0; i < corr.length; i++) { const d = dist(to, corr[i]); if (d < cjd) { cjd = d; cj = i; } }
+  const path = [from];
+  const step = ci <= cj ? 1 : -1;
+  for (let i = ci; (step > 0 ? i <= cj : i >= cj); i += step) path.push(corr[i]);
+  if (cj !== ci || path.length < 2) path.push(to);
+  else if (dist(path[path.length-1], to) > 2) path.push(to);
+  return path;
+}
+
+// ============ Route engine ============
+function calcRoute(startId, endId) {
+  const sf = parseInt(startId.charAt(3));
+  const ef = parseInt(endId.charAt(3));
+  const steps = [];
+  const floorsUsed = new Set();
+
+  if (sf === ef) {
+    const fd = FLOOR_DATA[sf];
+    const path = buildPath(fd, startId, endId);
+    steps.push({ type: 'walk', text: `เดินจาก <span class="hl start-hl">${startId}</span> ไปยัง <span class="hl end-hl">${endId}</span> ภายในชั้น <span class="hl floor-hl">${sf}</span> ตามทางเดินกลาง`, floor: sf, path });
+    floorsUsed.add(sf);
+  } else {
+    const dir = sf < ef ? 'ขึ้น' : 'ลง';
+    const startFd = FLOOR_DATA[sf];
+    const endFd = FLOOR_DATA[ef];
+    const elev = nearestElev(startFd, startId);
+    const elevEnd = nearestElev(endFd, endId);
+    const diff = Math.abs(ef - sf);
+
+    // 1. Walk to elevator on start floor
+    const p1 = [startFd.rooms[startId], elev];
+    steps.push({ type: 'walk', text: `เดินจาก <span class="hl start-hl">${startId}</span> ไปยัง <span class="hl floor-hl">${elev.label}</span> (ชั้น ${sf})`, floor: sf, path: p1 });
+    floorsUsed.add(sf);
+
+    // 2. Take elevator
+    steps.push({ type: 'lift', text: `🛗 ขึ้นลิฟต์${dir}ไป <span class="hl floor-hl">ชั้น ${ef}</span> (${diff} ชั้น)`, fromFloor: sf, toFloor: ef, elevator: elev });
+    // floors between
+    for (let m = Math.min(sf, ef) + 1; m < Math.max(sf, ef); m++) floorsUsed.add(m);
+
+    // 3. Walk from elevator on destination floor
+    const p3 = [elevEnd, endFd.rooms[endId]];
+    steps.push({ type: 'walk', text: `เมื่อถึงชั้น ${ef} เดินจากลิฟต์ไปยัง <span class="hl end-hl">${endId}</span>`, floor: ef, path: p3 });
+    floorsUsed.add(ef);
+  }
+
+  steps.push({ type: 'arrive', text: `📍 ถึง <span class="hl end-hl">${endId}</span> ชั้น ${ef} แล้ว` });
+  return { steps, floors: [...floorsUsed].sort() };
+}
+
+// ============ Rendering ============
+let currentFloor = 1;
+let currentRoute = null;
+
+// Floor tabs
+document.querySelectorAll('.floor-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.floor-tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    currentFloor = parseInt(tab.dataset.floor);
+    showFloor(currentFloor);
+  });
+});
+
+function showFloor(floor) {
+  for (let f = 1; f <= 4; f++) {
+    const img = document.getElementById(`floorImg${f}`);
+    if (img) img.style.display = f === floor ? 'block' : 'none';
+  }
+  document.getElementById('emptyState').style.display = 'none';
+  if (currentRoute) renderRoute(currentRoute, floor);
+  else clearOverlay();
+}
+
+function clearOverlay() {
+  document.getElementById('routeOverlay').innerHTML = '';
+  document.getElementById('startMarker').style.display = 'none';
+  document.getElementById('endMarker').style.display = 'none';
+}
+
+function renderRoute(route, activeFloor) {
+  const svg = document.getElementById('routeOverlay');
+  svg.innerHTML = '';
+  const startMarker = document.getElementById('startMarker');
+  const endMarker = document.getElementById('endMarker');
+  startMarker.style.display = 'none';
+  endMarker.style.display = 'none';
+
+  const activeImg = document.getElementById(`floorImg${activeFloor}`);
+  if (!activeImg || activeImg.style.display === 'none') return;
+
+  const displayW = activeImg.clientWidth || 800;
+  const displayH = activeImg.clientHeight || 600;
+  const xs = displayW / 100;
+  const ys = displayH / 100;
+
+  svg.setAttribute('width', displayW);
+  svg.setAttribute('height', displayH);
+  svg.setAttribute('viewBox', `0 0 ${displayW} ${displayH}`);
+
+  // Glow filter
+  const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+  defs.innerHTML = `<filter id="g"><feGaussianBlur stdDeviation="2.5"/><feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge></filter>`;
+  svg.appendChild(defs);
+
+  // Draw elevator icons on each floor
+  const fd = FLOOR_DATA[activeFloor];
+  if (fd) {
+    [fd.elevator, fd.elevator2].forEach((e, i) => {
+      const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      g.setAttribute('transform', `translate(${e.x * xs}, ${e.y * ys})`);
+      // elevator box
+      const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+      rect.setAttribute('x', '-12'); rect.setAttribute('y', '-12');
+      rect.setAttribute('width', '24'); rect.setAttribute('height', '24');
+      rect.setAttribute('rx', '4');
+      rect.setAttribute('fill', '#1565c0');
+      rect.setAttribute('opacity', '0.85');
+      rect.setAttribute('stroke', 'white');
+      rect.setAttribute('stroke-width', '2');
+      g.appendChild(rect);
+      // elevator icon text
+      const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      text.setAttribute('text-anchor', 'middle');
+      text.setAttribute('dy', '4');
+      text.setAttribute('font-size', '14');
+      text.setAttribute('fill', 'white');
+      text.setAttribute('font-weight', 'bold');
+      text.textContent = '🛗';
+      g.appendChild(text);
+      svg.appendChild(g);
+    });
+  }
+
+  // Draw walk paths on this floor
+  let firstWalkDone = false;
+  let lastWalkEnd = null;
+
+  route.steps.forEach(step => {
+    if (step.type === 'walk' && step.floor === activeFloor && step.path && step.path.length >= 2) {
+      const pts = step.path.map(p => `${(p.x * xs).toFixed(1)},${(p.y * ys).toFixed(1)}`).join(' ');
+
+      // Glow line
+      const glow = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
+      glow.setAttribute('points', pts);
+      glow.setAttribute('fill', 'none');
+      glow.setAttribute('stroke', '#1565c0');
+      glow.setAttribute('stroke-width', '8');
+      glow.setAttribute('stroke-linecap', 'round');
+      glow.setAttribute('stroke-linejoin', 'round');
+      glow.setAttribute('opacity', '0.3');
+      glow.setAttribute('filter', 'url(#g)');
+      svg.appendChild(glow);
+
+      // Main line
+      const line = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
+      line.setAttribute('points', pts);
+      line.setAttribute('fill', 'none');
+      line.setAttribute('stroke', '#1565c0');
+      line.setAttribute('stroke-width', '4');
+      line.setAttribute('stroke-linecap', 'round');
+      line.setAttribute('stroke-linejoin', 'round');
+      line.setAttribute('opacity', '0.9');
+      svg.appendChild(line);
+
+      // Arrow heads at segment ends
+      for (let i = 0; i < step.path.length - 1; i++) {
+        const a = step.path[i], b = step.path[i+1];
+        const angle = Math.atan2(b.y - a.y, b.x - a.x) * 180 / Math.PI;
+        const arr = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+        const tipX = b.x * xs, tipY = b.y * ys;
+        const size = 6;
+        arr.setAttribute('points',
+          `${tipX},${tipY} ` +
+          `${tipX - size * Math.cos((angle-30)*Math.PI/180)},${tipY - size * Math.sin((angle-30)*Math.PI/180)} ` +
+          `${tipX - size * Math.cos((angle+30)*Math.PI/180)},${tipY - size * Math.sin((angle+30)*Math.PI/180)}`
+        );
+        arr.setAttribute('fill', '#1565c0');
+        arr.setAttribute('opacity', '0.85');
+        svg.appendChild(arr);
+      }
+
+      // Start marker — first walk first point
+      if (!firstWalkDone && step.path.length > 0) {
+        const p = step.path[0];
+        startMarker.style.left = (p.x * xs) + 'px';
+        startMarker.style.top = (p.y * ys) + 'px';
+        startMarker.style.display = 'block';
+        firstWalkDone = true;
+      }
+
+      lastWalkEnd = step.path[step.path.length - 1];
+    }
+  });
+
+  // End marker
+  if (lastWalkEnd) {
+    endMarker.style.left = (lastWalkEnd.x * xs) + 'px';
+    endMarker.style.top = (lastWalkEnd.y * ys) + 'px';
+    endMarker.style.display = 'block';
+  }
+}
+
+// Resize handler
+window.addEventListener('resize', () => { if (currentRoute) renderRoute(currentRoute, currentFloor); });
+// Also re-render after images load
+document.querySelectorAll('.map-view img').forEach(img => {
+  img.addEventListener('load', () => { if (currentRoute) renderRoute(currentRoute, currentFloor); });
+});
+// MutationObserver for when images resize
+new ResizeObserver(() => { if (currentRoute) renderRoute(currentRoute, currentFloor); }).observe(document.getElementById('mapView'));
+
+// ============ Navigate ============
+document.getElementById('goBtn').addEventListener('click', go);
+document.getElementById('startSelect').addEventListener('keydown', e => { if (e.key === 'Enter') go(); });
+document.getElementById('endSelect').addEventListener('keydown', e => { if (e.key === 'Enter') go(); });
+
+function go() {
+  const s = startSel.value, e = endSel.value;
+  if (!s || !e) { alert('⛔ กรุณาเลือกทั้งจุดเริ่มต้นและจุดหมาย'); return; }
+  if (s === e) { alert('⛔ จุดเริ่มต้นและจุดหมายต้องเป็นคนละห้องกัน'); return; }
+
+  const route = calcRoute(s, e);
+  currentRoute = route;
+
+  const sf = parseInt(s.charAt(3)), ef = parseInt(e.charAt(3));
+  const bar = document.getElementById('routeBar');
+  bar.className = 'route-bar show';
+  bar.innerHTML = `
+    <span class="tag start-tag">🟢 ${s}</span>
+    <span class="sep">→</span>
+    <span class="tag end-tag">🔴 ${e}</span>
+    <span class="sep">·</span>
+    <span class="stat">ชั้น ${sf} → ชั้น ${ef}</span>
+    <span class="sep">·</span>
+    <span class="stat">${route.steps.length - 1} ขั้นตอน</span>
+  `;
+
+  // Switch to first floor
+  currentFloor = route.floors[0];
+  document.querySelectorAll('.floor-tab').forEach(t => {
+    t.classList.toggle('active', parseInt(t.dataset.floor) === currentFloor);
+    t.classList.toggle('has-route', route.floors.includes(parseInt(t.dataset.floor)));
+  });
+  showFloor(currentFloor);
+
+  // Directions
+  const stepsDiv = document.getElementById('dirSteps');
+  stepsDiv.innerHTML = '';
+  route.steps.forEach((step, idx) => {
+    const div = document.createElement('div');
+    div.className = 'dir-step';
+    const num = idx + 1;
+    let numCls = '';
+    if (step.type === 'walk') numCls = 'num-walk';
+    else if (step.type === 'lift') numCls = 'num-lift';
+    else if (step.type === 'arrive') numCls = 'num-arrive';
+
+    div.innerHTML = `
+      <div class="step-num ${numCls}">${num}</div>
+      <div class="step-content">${step.text}${step.floor ? '<div class="step-footnote">👆 คลิกเพื่อดูแผนที่ชั้นนี้</div>' : ''}</div>
+    `;
+    if (step.type === 'walk') {
+      div.addEventListener('click', () => {
+        currentFloor = step.floor;
+        document.querySelectorAll('.floor-tab').forEach(t => t.classList.toggle('active', parseInt(t.dataset.floor) === currentFloor));
+        showFloor(currentFloor);
+      });
+    }
+    stepsDiv.appendChild(div);
+  });
+
+  document.getElementById('dirCard').classList.add('show');
+  // Update summary
+  document.getElementById('dirSummary').textContent = `· ${route.steps.length} ขั้นตอน`;
+}
+
+// Init
+showFloor(1);
+document.querySelector('.floor-tab[data-floor="1"]').classList.add('active');
+</script>
+</body>
+</html>
