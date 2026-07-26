@@ -67,6 +67,10 @@ function selectSuggestion(code: string) {
   showSuggestions.value = false
   doSearch(code)
 }
+
+function onBlur() {
+  setTimeout(() => showSuggestions.value = false, 200)
+}
 </script>
 
 <template>
@@ -106,7 +110,7 @@ function selectSuggestion(code: string) {
                 v-model="searchQuery"
                 @input="updateSuggestions(); showSuggestions = true; error = null"
                 @focus="showSuggestions = suggestions.length > 0 || store.searchHistory.length > 0"
-                @blur="setTimeout(() => showSuggestions = false, 200)"
+                @blur="onBlur"
                 @keydown="handleKeydown"
                 type="text"
                 placeholder="พิมพ์รหัสห้อง เช่น ICT1107"
