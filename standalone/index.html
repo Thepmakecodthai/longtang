@@ -150,7 +150,7 @@ ei.addEventListener('keydown',e=>{if(e.key==='Enter'){const s=es.querySelector('
 function pick(c){si.value=c;sr=c;ei.focus()}
 // ===== ROUTE =====
 function go(){const s=sr||si.value,e=er||ei.value;if(!s||!e)return;if(s===e){alert('⛔ ต้องเป็นคนละห้อง');return}
-const sf=+s[3],ef=+e[3];const dir=sf<ef?'ขึ้น':'ลง';const d=Math.abs(ef-sf);const st=[];const fl=new Set();
+const sf=+s[4],ef=+e[4];const dir=sf<ef?'ขึ้น':'ลง';const d=Math.abs(ef-sf);const st=[];const fl=new Set();
 if(sf===ef){st.push({t:'walk',txt:'เดินจาก '+s+' ไป '+e+' ในชั้น '+sf,f:sf});fl.add(sf)}
 else{const ns=wing(s)==='left'?'ซ้าย':'ขวา',ne=wing(e)==='left'?'ซ้าย':'ขวา'
 st.push({t:'walk',txt:'เดินจาก '+s+' ไปลิฟต์'+ns+' (ชั้น '+sf+')',f:sf});fl.add(sf)
@@ -199,7 +199,7 @@ const sc=ROOMS.find(r=>r.code===sr&&r.floor===cf)||ROOMS.find(r=>r.code===sr);
 const ec=ROOMS.find(r=>r.code===er&&r.floor===cf)||ROOMS.find(r=>r.code===er);
 if(sc){const c=center(sc.pts);sd.style.left=(c.x/1200*100)+'%';sd.style.top=(c.y/840*100)+'%';sd.style.display='block'}
 if(ec){const c=center(ec.pts);ed.style.left=(c.x/1200*100)+'%';ed.style.top=(c.y/840*100)+'%';ed.style.display='block'}}
-function renderDirs(st,s,e){dc.style.display='block';es0.style.display='none';const sf=+s[3],ef=+e[3];dhr.innerHTML='🟢 '+s+' → 🔴 '+e;
+function renderDirs(st,s,e){dc.style.display='block';es0.style.display='none';const sf=+s[4],ef=+e[4];dhr.innerHTML='🟢 '+s+' → 🔴 '+e;
 const dd2=$('dd');const ws=wing(s),we=wing(e);const nws=ws==='left'?'ปีกซ้าย':'ปีกขวา',nwe=we==='left'?'ปีกซ้าย':'ปีกขวา';const dets=[];
 if(sf===ef){dets.push('🚶 ออกจาก <b>'+s+'</b> ('+nws+')');dets.push('➡️ '+(ws===we?'ตรงไปตามทางเดิน':'เดินข้ามไป'+nwe));dets.push('📍 ถึง <b>'+e+'</b> ('+nwe+')'+(we==='left'?' อยู่ซ้ายมือ':' อยู่ขวามือ'))}
 else{const dir=sf<ef?'ขึ้น':'ลง';const ns=ws==='left'?'ซ้าย':'ขวา',ne=we==='left'?'ซ้าย':'ขวา'

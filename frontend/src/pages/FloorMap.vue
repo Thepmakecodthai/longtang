@@ -44,7 +44,7 @@ function nearestElev(floor: number, code: string): 'left' | 'right' {
 }
 
 function calcRoute(s: string, e: string) {
-  const sf = +s[3], ef = +e[3]
+  const sf = +s[4], ef = +e[4]
   const steps: Step[] = []
   const floors: Set<number> = new Set()
   const dir = sf < ef ? 'ขึ้น' : 'ลง'
@@ -68,7 +68,7 @@ function calcRoute(s: string, e: string) {
 }
 
 function describeDetailed(s: string, e: string) {
-  const sf = +s[3], ef = +e[3]
+  const sf = +s[4], ef = +e[4]
   const wS = ALL_ROOMS.find(r => r.code === s)?.wing || 'left'
   const wE = ALL_ROOMS.find(r => r.code === e)?.wing || 'left'
   const sSide = wS === 'left' ? 'ปีกซ้าย' : 'ปีกขวา'
