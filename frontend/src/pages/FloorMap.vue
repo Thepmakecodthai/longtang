@@ -1,13 +1,14 @@
 <script setup lang="ts">
 import { ref, computed, watch, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { ALL_ROOMS, type Room } from '@/data/rooms'
+import { ALL_ROOMS } from '@/data/rooms'
+import { FLOOR_POLYGONS, polygonCentroid } from '@/data/floor-polygons'
 
 const route = useRoute()
 const router = useRouter()
 
 // ============ STATE ============
-const currentFloor = ref(parseInt((route.query.floor as string) || '1'))
+const currentFloor = ref(1)
 const searchStart = ref('')
 const searchEnd = ref('')
 const startRoom = ref('')
@@ -16,170 +17,164 @@ const showRoute = ref(false)
 const showSuggestions = ref(false)
 const suggestionMode = ref<'start' | 'end'>('start')
 const selectedIdx = ref(-1)
+const hoveredRoom = ref('')
+const highlightRoom = ref('')
 
-// ============ ROOM POSITIONS (% on 2048x1448 images) ============
-interface Pos { x: number; y: number }
-interface Layout { rooms: Record<string, Pos>; elevators: { id:string; x:number; y:number; label:string }[]; elevator2: { id:string; x:number; y:number; label:string }; corridor: Pos[] }
-
-const LAYOUTS: Record<number, Layout> = {
-  1: {
-    rooms: { "ICT1112":{x:5.5,y:28}, "ICT1111":{x:5.5,y:40}, "ICT1110":{x:5.5,y:52}, "ICT1109":{x:5.5,y:64}, "ICT1108":{x:5.5,y:76}, "ICT1107":{x:9,y:47}, "ICT1106":{x:88,y:20}, "ICT1105":{x:88,y:32}, "ICT1104":{x:88,y:44}, "ICT1104/1":{x:83,y:44}, "ICT1103":{x:88,y:56}, "ICT1103/1":{x:83,y:56}, "ICT1102":{x:88,y:68}, "ICT1102/1":{x:83,y:68} },
-    elevators: [{id:"e1",x:27,y:22,label:"ลิฟต์ซ้าย"}], elevator2: {id:"e2",x:67,y:22,label:"ลิฟต์ขวา"},
-    corridor: [{x:10,y:46},{x:27,y:24},{x:50,y:24},{x:67,y:24},{x:83,y:24}]
-  },
-  2: {
-    rooms: { "ICT1247":{x:10,y:18}, "ICT1241":{x:8,y:40}, "ICT1241/1":{x:5,y:40}, "ICT1235":{x:8,y:52}, "ICT1235/1":{x:5,y:52}, "ICT1229":{x:8,y:64}, "ICT1224":{x:8,y:76}, "ICT1219":{x:90,y:72}, "ICT1213":{x:90,y:58}, "ICT1207":{x:90,y:44}, "ICT1202":{x:90,y:30} },
-    elevators: [{id:"e1",x:18,y:30,label:"ลิฟต์ซ้าย"}], elevator2: {id:"e2",x:78,y:30,label:"ลิฟต์ขวา"},
-    corridor: [{x:12,y:55},{x:18,y:32},{x:50,y:26},{x:78,y:32},{x:86,y:55}]
-  },
-  3: {
-    rooms: { "ICT1352":{x:12,y:18}, "ICT1355":{x:32,y:10}, "ICT1356":{x:50,y:10}, "ICT1357":{x:68,y:10}, "ICT1359":{x:50,y:24}, "ICT1340":{x:10,y:52}, "ICT1334":{x:10,y:64}, "ICT1328":{x:22,y:75}, "ICT1323":{x:38,y:75}, "ICT1318":{x:55,y:75}, "ICT1312":{x:72,y:75}, "ICT1307":{x:85,y:65}, "ICT1302":{x:85,y:52} },
-    elevators: [{id:"e1",x:35,y:28,label:"ลิฟต์ซ้าย"}], elevator2: {id:"e2",x:78,y:28,label:"ลิฟต์ขวา"},
-    corridor: [{x:14,y:40},{x:22,y:30},{x:35,y:30},{x:50,y:28},{x:78,y:30},{x:82,y:55}]
-  },
-  4: {
-    rooms: { "ICT1439":{x:8,y:22}, "ICT1434":{x:8,y:36}, "ICT1429":{x:8,y:50}, "ICT1424":{x:8,y:64}, "ICT1419":{x:88,y:22}, "ICT1419/1":{x:83,y:22}, "ICT1413":{x:88,y:36}, "ICT1413/1":{x:83,y:36}, "ICT1407":{x:88,y:50}, "ICT1402":{x:88,y:64} },
-    elevators: [{id:"e1",x:22,y:20,label:"ลิฟต์ซ้าย"}], elevator2: {id:"e2",x:75,y:20,label:"ลิฟต์ขวา"},
-    corridor: [{x:12,y:42},{x:22,y:22},{x:50,y:18},{x:75,y:22},{x:82,y:42}]
-  }
-}
-
-// ============ ROUTE ENGINE ============
-function dist(a: Pos, b: Pos) { return Math.hypot(a.x - b.x, a.y - b.y) }
-
-function nearestElev(l: Layout, key: string) {
-  const p = l.rooms[key]; if (!p) return l.elevators[0]
-  return dist(p, l.elevators[0]) <= dist(p, l.elevator2) ? l.elevators[0] : l.elevator2
-}
-
-function pathOnFloor(l: Layout, from: string, to: string): Pos[] {
-  const f = l.rooms[from], t = l.rooms[to]; if (!f || !t) return []
-  const c = l.corridor; if (!c.length) return [f, t]
-  let ci=0, cid=Infinity; for(let i=0;i<c.length;i++){const d=dist(f,c[i]);if(d<cid){cid=d;ci=i}}
-  let cj=0, cjd=Infinity; for(let i=0;i<c.length;i++){const d=dist(t,c[i]);if(d<cjd){cjd=d;cj=i}}
-  const p: Pos[] = [f]; const step = ci<=cj?1:-1
-  for(let i=ci;(step>0?i<=cj:i>=cj);i+=step) p.push(c[i])
-  if(p.length<2||dist(p[p.length-1],t)>2) p.push(t)
-  return p
-}
-
-function wingOf(key: string): 'left' | 'right' {
-  const room = ALL_ROOMS.find(r => r.code === key)
-  return room?.wing || (parseInt(key.replace(/[^\d]/g,'')) % 2 === 0 ? 'left' : 'right')
-}
-
-function directionWords(fromX: number, toX: number, fromKey: string, toKey: string): string {
-  if (fromKey === 'elevator') return 'ตรงไป'
-  const diff = toX - fromX
-  if (Math.abs(diff) < 5) return 'ตรงไป'
-  return diff > 0 ? 'เลี้ยวขวา' : 'เลี้ยวซ้าย'
-}
-
-function roomSide(key: string): string {
-  return wingOf(key) === 'left' ? 'ปีกซ้าย' : 'ปีกขวา'
-}
-
-function describeDetailed(s: string, e: string, steps: {type:string;text:string;floor?:number;path?:Pos[];fromF?:number;toF?:number}[]): string[] {
-  const details: string[] = []
-  const sf = parseInt(s.charAt(3)), ef = parseInt(e.charAt(3))
-  const sw = roomSide(s), ew = roomSide(e)
-
-  if (sf === ef) {
-    const dir = wingOf(s) === wingOf(e) ? 'ตรงไปตามทางเดิน' : `เดินข้ามไป${ew}`
-    details.push(`🚶 จากห้อง <strong>${s}</strong> (${sw}) ออกมาทางเดินกลาง`)
-    details.push(`➡️ ${dir}`)
-    details.push(`📍 ถึงห้อง <strong>${e}</strong> (${ew}) ทางเดินฝั่ง${wingOf(e) === 'left' ? 'ซ้ายมือ' : 'ขวามือ'}`)
-  } else {
-    const dir = sf < ef ? 'ขึ้น' : 'ลง'
-    const floorDiff = Math.abs(ef - sf)
-    const elev = nearestElev(LAYOUTS[sf], s)
-    const eSide = elev.id === 'e1' ? 'ซ้าย' : 'ขวา'
-    const destElev = nearestElev(LAYOUTS[ef], e)
-    const dSide = destElev.id === 'e1' ? 'ซ้าย' : 'ขวา'
-
-    details.push(`🚶 ออกจาก <strong>${s}</strong> (${sw}, ชั้น ${sf})`)
-    details.push(`➡️ เดินไปลิฟต์ฝั่ง${eSide}ของชั้น ${sf}`)
-    details.push(`🛗 ขึ้นลิฟต์${dir}ไป <strong>ชั้น ${ef}</strong> (${floorDiff} ชั้น)`)
-
-    if (ef !== sf) {
-      const dirWord = dSide === eSide ? 'ตรงไปตามทางเดิน' : `เดินข้ามไปฝั่ง${dSide}`
-      details.push(`🚶 เมื่อถึงชั้น ${ef} ออกจากลิฟต์ฝั่ง${dSide}`)
-      details.push(`➡️ ${dirWord} `)
-      details.push(`📍 เลี้ยวเข้าทางเดิน${ew} — จะพบ <strong>${e}</strong> ${wingOf(e) === 'left' ? 'อยู่ทางซ้ายมือ' : 'อยู่ทางขวามือ'}`)
-    }
-  }
-  return details
-}
-
-interface Step { type: 'walk'|'lift'|'arrive'; text: string; floor?: number; path?: Pos[]; fromFloor?: number; toFloor?: number }
-
-function calc(s: string, e: string) {
-  const sf = parseInt(s.charAt(3)), ef = parseInt(e.charAt(3))
-  const steps: Step[] = []; const floors: Set<number> = new Set()
-  if (sf === ef) {
-    const l = LAYOUTS[sf]; const p = pathOnFloor(l, s, e)
-    steps.push({ type:'walk', text:`เดินจาก ${s} ไป ${e} ภายในชั้น ${sf}`, floor:sf, path:p }); floors.add(sf)
-  } else {
-    const dir = sf<ef?'ขึ้น':'ลง'; const sL=LAYOUTS[sf], eL=LAYOUTS[ef]
-    const e1=nearestElev(sL,s), e2=nearestElev(eL,e); const d=Math.abs(ef-sf)
-    steps.push({ type:'walk', text:`เดินจาก ${s} ไป ${e1.label} (ชั้น ${sf})`, floor:sf, path:[sL.rooms[s],e1] }); floors.add(sf)
-    steps.push({ type:'lift', text:`🛗 ขึ้นลิฟต์${dir}ไปชั้น ${ef} (${d} ชั้น)`, fromFloor:sf, toFloor:ef })
-    for(let m=Math.min(sf,ef)+1;m<Math.max(sf,ef);m++) floors.add(m)
-    steps.push({ type:'walk', text:`เมื่อถึงชั้น ${ef} เดินจากลิฟต์ไป ${e}`, floor:ef, path:[e2,eL.rooms[e]] }); floors.add(ef)
-  }
-  steps.push({ type:'arrive', text:`📍 ถึง ${e} ชั้น ${ef} แล้ว` })
-  return { steps, floors:[...floors].sort() }
-}
-
-// ============ COMPUTED ============
-const suggestions = computed(() => {
-  const q = (suggestionMode.value === 'start' ? searchStart.value : searchEnd.value).toUpperCase()
-  if (!q) return []
-  return ALL_ROOMS.filter(r => r.code.includes(q)).slice(0, 8).map(r => r.code)
-})
-
+interface Step { type: 'walk'|'lift'|'arrive'; text: string; floor?: number; fromFloor?: number; toFloor?: number }
 const routeSteps = ref<Step[]>([])
 const floorsUsed = ref<number[]>([])
 const detailedDirs = ref<string[]>([])
 
-// ============ METHODS ============
-function switchFloor(f: number) { currentFloor.value = f; router.replace({ query:{...route.query,floor:String(f)} }) }
-function onFocus(mode: 'start' | 'end') { suggestionMode.value = mode; showSuggestions.value = true; selectedIdx.value = -1 }
-function onBlur() { setTimeout(() => showSuggestions.value = false, 200) }
+// ============ LAYOUT DATA (from polygons) ============
+function getCentroid(floor: number, code: string): { x: number; y: number } | null {
+  const fp = FLOOR_POLYGONS[floor]
+  if (!fp) return null
+  const room = fp.rooms.find(r => r.code === code)
+  if (!room) return null
+  return polygonCentroid(room.points)
+}
 
-function selectSuggestion(code: string) {
+function dist(a: {x:number;y:number}, b: {x:number;y:number}) { return Math.hypot(a.x - b.x, a.y - b.y) }
+
+function nearestElev(floor: number, code: string): 'left' | 'right' {
+  const c = getCentroid(floor, code)
+  if (!c) return 'left'
+  // elevators approx at left ~180, right ~1020 in 1200-wide viewBox
+  return c.x < 600 ? 'left' : 'right'
+}
+
+function calcRoute(s: string, e: string) {
+  const sf = +s[3], ef = +e[3]
+  const steps: Step[] = []
+  const floors: Set<number> = new Set()
+  const dir = sf < ef ? 'ขึ้น' : 'ลง'
+  const sideS = nearestElev(sf, s), sideE = nearestElev(ef, e)
+  const sLabel = sideS === 'left' ? 'ลิฟต์ซ้าย' : 'ลิฟต์ขวา'
+  const eLabel = sideE === 'left' ? 'ลิฟต์ซ้าย' : 'ลิฟต์ขวา'
+
+  if (sf === ef) {
+    steps.push({ type: 'walk', text: `เดินจาก ${s} ไป ${e} ภายในชั้น ${sf} ตามทางเดินกลาง`, floor: sf })
+    floors.add(sf)
+  } else {
+    steps.push({ type: 'walk', text: `เดินจาก ${s} ไป${sLabel} (ชั้น ${sf})`, floor: sf })
+    floors.add(sf)
+    steps.push({ type: 'lift', text: `🛗 ขึ้นลิฟต์${dir}ไปชั้น ${ef} (${Math.abs(ef - sf)} ชั้น)`, fromFloor: sf, toFloor: ef })
+    for (let m = Math.min(sf, ef) + 1; m < Math.max(sf, ef); m++) floors.add(m)
+    steps.push({ type: 'walk', text: `เมื่อถึงชั้น ${ef} เดินจาก${eLabel}ไป ${e}`, floor: ef })
+    floors.add(ef)
+  }
+  steps.push({ type: 'arrive', text: `📍 ถึง ${e} ชั้น ${ef} แล้ว` })
+  return { steps, floors: [...floors].sort() }
+}
+
+function describeDetailed(s: string, e: string) {
+  const sf = +s[3], ef = +e[3]
+  const wS = ALL_ROOMS.find(r => r.code === s)?.wing || 'left'
+  const wE = ALL_ROOMS.find(r => r.code === e)?.wing || 'left'
+  const sSide = wS === 'left' ? 'ปีกซ้าย' : 'ปีกขวา'
+  const eSide = wE === 'left' ? 'ปีกซ้าย' : 'ปีกขวา'
+  const d: string[] = []
+  if (sf === ef) {
+    const ww = wS === wE ? 'ตรงไปตามทางเดิน' : `เดินข้ามไป${eSide}`
+    d.push(`🚶 ออกจาก <b>${s}</b> (${sSide})`)
+    d.push(`➡️ ${ww}`)
+    d.push(`📍 ถึง <b>${e}</b> (${eSide})${wE === 'left' ? ' อยู่ซ้ายมือ' : ' อยู่ขวามือ'}`)
+  } else {
+    const dir = sf < ef ? 'ขึ้น' : 'ลง'
+    const sL = nearestElev(sf, s), eL = nearestElev(ef, e)
+    const ns = sL === 'left' ? 'ซ้าย' : 'ขวา'
+    const ne = eL === 'left' ? 'ซ้าย' : 'ขวา'
+    d.push(`🚶 ออกจาก <b>${s}</b> (${sSide}, ชั้น ${sf})`)
+    d.push(`➡️ เดินไปลิฟต์ฝั่ง${ns}`)
+    d.push(`🛗 ขึ้นลิฟต์${dir}ไป <b>ชั้น ${ef}</b> (${Math.abs(ef - sf)} ชั้น)`)
+    d.push(`🚶 เมื่อถึงชั้น ${ef} ออกจากลิฟต์ฝั่ง${ne}`)
+    d.push(`➡️ ${ne === ns ? 'ตรงไปตามทางเดิน' : 'เดินข้ามไปฝั่ง' + ne}`)
+    d.push(`📍 เลี้ยวเข้า${eSide} — จะพบ <b>${e}</b>${wE === 'left' ? ' อยู่ซ้ายมือ' : ' อยู่ขวามือ'}`)
+  }
+  return d
+}
+
+function doRoute() {
+  const s = startRoom.value || searchStart.value
+  const e = endRoom.value || searchEnd.value
+  if (!s || !e) return
+  if (s === e) { alert('⛔ จุดเริ่มต้นและจุดหมายต้องเป็นคนละห้องกัน'); return }
+  const r = calcRoute(s, e)
+  routeSteps.value = r.steps
+  floorsUsed.value = r.floors
+  showRoute.value = true
+  detailedDirs.value = describeDetailed(s, e)
+  currentFloor.value = r.floors[0]
+}
+
+function clearRoute() {
+  showRoute.value = false; routeSteps.value = []; floorsUsed.value = []; detailedDirs.value = []
+  startRoom.value = ''; endRoom.value = ''
+}
+
+function switchFloor(f: number) { currentFloor.value = f }
+
+function selectRoom(code: string) {
+  highlightRoom.value = code
   if (suggestionMode.value === 'start') { searchStart.value = code; startRoom.value = code }
   else { searchEnd.value = code; endRoom.value = code }
   showSuggestions.value = false
   if (startRoom.value && endRoom.value) doRoute()
 }
 
+// ============ SUGGESTIONS ============
+const suggestions = computed(() => {
+  const q = (suggestionMode.value === 'start' ? searchStart.value : searchEnd.value).toUpperCase()
+  if (!q) return []
+  return ALL_ROOMS.filter(r => r.code.includes(q)).slice(0, 8).map(r => r.code)
+})
+
+function onFocus(mode: 'start' | 'end') { suggestionMode.value = mode; showSuggestions.value = true; selectedIdx.value = -1 }
+function onBlur() { setTimeout(() => showSuggestions.value = false, 200) }
+
 function handleKeydown(e: KeyboardEvent) {
   const s = suggestions.value
   if (e.key === 'Enter') {
-    if (selectedIdx.value >= 0 && selectedIdx.value < s.length) {
-      selectSuggestion(s[selectedIdx.value])
-    } else if (s.length > 0) {
-      selectSuggestion(s[0])
-    }
-  } else if (e.key === 'ArrowDown') { selectedIdx.value = Math.min(selectedIdx.value+1, s.length-1); e.preventDefault() }
-  else if (e.key === 'ArrowUp') { selectedIdx.value = Math.max(selectedIdx.value-1, -1); e.preventDefault() }
+    if (selectedIdx.value >= 0 && selectedIdx.value < s.length) selectRoom(s[selectedIdx.value])
+    else if (s.length > 0) selectRoom(s[0])
+  } else if (e.key === 'ArrowDown') { selectedIdx.value = Math.min(selectedIdx.value + 1, s.length - 1); e.preventDefault() }
+  else if (e.key === 'ArrowUp') { selectedIdx.value = Math.max(selectedIdx.value - 1, -1); e.preventDefault() }
   else if (e.key === 'Escape') { showSuggestions.value = false }
 }
 
-function doRoute() {
-  if (!startRoom.value || !endRoom.value) return
-  if (startRoom.value === endRoom.value) { alert('⛔ จุดเริ่มต้นและจุดหมายต้องเป็นคนละห้องกัน'); return }
-  const r = calc(startRoom.value, endRoom.value)
-  routeSteps.value = r.steps; floorsUsed.value = r.floors; showRoute.value = true
-  detailedDirs.value = describeDetailed(startRoom.value, endRoom.value, r.steps)
-  currentFloor.value = r.floors[0]
+function pickRoom(code: string) { searchStart.value = code; startRoom.value = code; suggestionMode.value = 'end'; document.getElementById('endInput')?.focus() }
+
+// ============ POLYGON CENTROIDS FOR ROUTE RENDERING ============
+// Simplified routing: rooms on same side walk along corridor
+// Different sides: cross corridor
+function getRoutePath(floor: number, fromCode: string, toCode: string): { x: number; y: number }[] {
+  const fp = FLOOR_POLYGONS[floor]
+  if (!fp) return []
+  const c1 = getCentroid(floor, fromCode)
+  const c2 = getCentroid(floor, toCode)
+  if (!c1 || !c2) return []
+  const r1 = ALL_ROOMS.find(r => r.code === fromCode)
+  const r2 = ALL_ROOMS.find(r => r.code === toCode)
+  const sameSide = r1?.wing === r2?.wing
+
+  // corridor mid-points (approximate in 1200x840 space)
+  const leftCorridor = { x: 300, y: 490 }
+  const rightCorridor = { x: 850, y: 490 }
+  const midCorridor = { x: 600, y: 470 }
+
+  if (sameSide) {
+    // Walk along corridor on same side
+    const midY = r1?.wing === 'left' ? 490 : 490
+    return [c1, { x: (c1.x + c2.x) / 2, y: midY }, c2]
+  } else {
+    // Cross the corridor
+    const via = r1?.wing === 'left' ? { x: 570, y: c1.y } : { x: 630, y: c1.y }
+    const via2 = r2?.wing === 'left' ? { x: 570, y: c2.y } : { x: 630, y: c2.y }
+    return [c1, via, midCorridor, via2, c2]
+  }
 }
 
-function clearRoute() {
-  showRoute.value = false; routeSteps.value = []; floorsUsed.value = []; detailedDirs.value = []
-}
-
+// Also update standalone path rendering
 const overlayKey = ref(0)
 watch([currentFloor, showRoute, routeSteps], async () => { await nextTick(); overlayKey.value++ })
 </script>
@@ -190,10 +185,10 @@ watch([currentFloor, showRoute, routeSteps], async () => { await nextTick(); ove
       <div class="max-w-7xl mx-auto px-4 h-14 flex items-center gap-3">
         <button @click="router.push('/')" class="text-gray-500 hover:text-orange-600 transition p-1 text-sm">← กลับ</button>
         <h1 class="font-semibold text-sm flex-1">🗺️ แผนที่อาคาร ICT</h1>
-        <div v-if="showRoute" class="hidden sm:flex items-center gap-1.5 mr-2">
-          <span class="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-mono font-bold">🟢 {{ startRoom }}</span>
-          <span class="text-xs text-gray-300">→</span>
-          <span class="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full font-mono font-bold">🔴 {{ endRoom }}</span>
+        <div v-if="showRoute" class="hidden sm:flex items-center gap-1.5 mr-2 text-xs">
+          <span class="bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-mono font-bold">🟢 {{ startRoom }}</span>
+          <span class="text-gray-300">→</span>
+          <span class="bg-red-100 text-red-700 px-2 py-0.5 rounded-full font-mono font-bold">🔴 {{ endRoom }}</span>
         </div>
         <div class="flex items-center gap-1 bg-gray-100 rounded-xl p-1">
           <button v-for="f in 4" :key="f" @click="switchFloor(f)"
@@ -211,27 +206,24 @@ watch([currentFloor, showRoute, routeSteps], async () => { await nextTick(); ove
           <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
             <div class="relative flex-1">
               <span class="absolute left-3 top-1/2 -translate-y-1/2 text-xs">🟢</span>
-              <input v-model="searchStart" @focus="onFocus('start')" @blur="onBlur" @keydown="handleKeydown"
+              <input id="startInput" v-model="searchStart" @focus="onFocus('start')" @blur="onBlur" @keydown="handleKeydown"
                 placeholder="ค้นหาจุดเริ่มต้น เช่น ICT1107"
-                class="w-full pl-8 pr-3 py-2.5 border-2 border-gray-100 rounded-xl text-sm focus:border-green-400 focus:outline-none focus:ring-2 focus:ring-green-100 transition text-base" />
+                class="w-full pl-8 pr-3 py-2.5 border-2 border-gray-100 rounded-xl text-sm focus:border-green-400 focus:outline-none focus:ring-2 focus:ring-green-100 transition" />
             </div>
             <span class="text-center text-gray-300 hidden sm:block">→</span>
             <div class="relative flex-1">
               <span class="absolute left-3 top-1/2 -translate-y-1/2 text-xs">🔴</span>
-              <input v-model="searchEnd" @focus="onFocus('end')" @blur="onBlur" @keydown="handleKeydown"
+              <input id="endInput" v-model="searchEnd" @focus="onFocus('end')" @blur="onBlur" @keydown="handleKeydown"
                 placeholder="ค้นหาจุดหมาย เช่น ICT1439"
-                class="w-full pl-8 pr-3 py-2.5 border-2 border-gray-100 rounded-xl text-sm focus:border-red-400 focus:outline-none focus:ring-2 focus:ring-red-100 transition text-base" />
+                class="w-full pl-8 pr-3 py-2.5 border-2 border-gray-100 rounded-xl text-sm focus:border-red-400 focus:outline-none focus:ring-2 focus:ring-red-100 transition" />
             </div>
-            <button @click="doRoute" class="px-5 py-2.5 bg-gradient-to-r from-green-600 to-orange-600 text-white rounded-xl font-medium text-sm hover:from-green-700 hover:to-orange-700 transition shadow-sm whitespace-nowrap"
-              :disabled="!searchStart || !searchEnd">
-              🔎 นำทาง
-            </button>
+            <button @click="doRoute" :disabled="!searchStart || !searchEnd"
+              class="px-5 py-2.5 bg-gradient-to-r from-green-600 to-orange-600 text-white rounded-xl font-medium text-sm hover:from-green-700 hover:to-orange-700 transition shadow-sm whitespace-nowrap">🔎 นำทาง</button>
           </div>
-
-          <!-- Suggestions dropdown -->
+          <!-- Suggestions -->
           <div v-if="showSuggestions && suggestions.length > 0" class="relative mt-1">
             <div class="absolute top-0 left-0 right-0 bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden z-30">
-              <button v-for="(code, i) in suggestions" :key="code" @mousedown.prevent="selectSuggestion(code)"
+              <button v-for="(code, i) in suggestions" :key="code" @mousedown.prevent="selectRoom(code)"
                 class="w-full px-4 py-2.5 text-left hover:bg-orange-50 flex items-center gap-3 transition-colors"
                 :class="{ 'bg-orange-100': i === selectedIdx }">
                 <span class="font-mono font-medium text-sm text-orange-600">{{ code }}</span>
@@ -241,76 +233,111 @@ watch([currentFloor, showRoute, routeSteps], async () => { await nextTick(); ove
           </div>
         </div>
 
-        <!-- Floor plan -->
-        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex-1 relative">
+        <!-- Floor Plan with Interactive SVG Overlay -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex-1">
           <div class="relative bg-gray-100" style="min-height:450px">
-            <img :src="`/ict/floor${currentFloor}.png`" :alt="`ชั้น ${currentFloor}`" class="w-full h-auto block"
-              :class="{ 'opacity-85': showRoute }" @load="overlayKey++" />
+            <!-- Floor plan image -->
+            <img :src="`/ict/${currentFloor}_${currentFloor === 1 ? 4 : 3}.png`"
+              :alt="`ชั้น ${currentFloor}`" class="w-full h-auto block" @load="overlayKey++" />
 
-            <!-- SVG route overlay -->
-            <svg v-if="showRoute" :key="overlayKey" class="absolute inset-0 w-full h-full pointer-events-none" preserveAspectRatio="xMidYMid meet" viewBox="0 0 100 100">
-              <defs><filter id="g"><feGaussianBlur stdDeviation="0.3" result="b"/><feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+            <!-- SVG: interactive rooms + route -->
+            <svg :key="overlayKey"
+              viewBox="0 0 1200 840"
+              style="position:absolute;top:0;left:0;width:100%;height:100%"
+              class="select-none">
+              <defs>
+                <filter id="rg"><feGaussianBlur stdDeviation="2"/><feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+              </defs>
+
+              <!-- Room polygons (interactive) -->
+              <template v-for="room in FLOOR_POLYGONS[currentFloor]?.rooms" :key="room.code">
+                <polygon :points="room.points"
+                  :class="`cursor-pointer transition-all duration-150`"
+                  :fill="room.code === highlightRoom ? 'rgba(21,101,192,0.3)' :
+                    room.code === hoveredRoom ? 'rgba(46,125,50,0.2)' :
+                    'transparent'"
+                  :stroke="room.code === highlightRoom ? '#1565c0' :
+                    room.code === hoveredRoom ? '#2e7d32' :
+                    'transparent'"
+                  :stroke-width="room.code === highlightRoom ? '2' : '1'"
+                  @mouseenter="hoveredRoom = room.code"
+                  @mouseleave="hoveredRoom = ''"
+                  @click="selectRoom(room.code)">
+                  <title>{{ room.code }}</title>
+                </polygon>
+              </template>
+
+              <!-- Room labels -->
+              <template v-for="room in FLOOR_POLYGONS[currentFloor]?.rooms" :key="'l'+room.code">
+                <text :x="polygonCentroid(room.points).x" :y="polygonCentroid(room.points).y"
+                  text-anchor="middle" dominant-baseline="middle"
+                  :font-size="room.code.includes('/') ? '9' : '11'"
+                  :font-weight="room.code === highlightRoom ? 'bold' : '500'"
+                  :fill="room.code === highlightRoom ? '#1565c0' : '#444'"
+                  :class="room.code === highlightRoom ? 'font-bold' : ''"
+                  style="pointer-events:none;text-shadow:0 0 3px white,0 0 6px white">
+                  {{ room.code.replace('ICT', '') }}
+                </text>
+              </template>
+
               <!-- Elevator markers -->
-              <g v-for="e in LAYOUTS[currentFloor]?.elevators" :key="e.id">
-                <rect :x="e.x-2.5" :y="e.y-2.5" width="5" height="5" rx="1" fill="#1565c0" opacity="0.8" stroke="white" stroke-width="0.3"/>
-                <text :x="e.x" :y="e.y+0.3" text-anchor="middle" font-size="2.5" fill="white">🛗</text>
-                <text :x="e.x" :y="e.y+2.3" text-anchor="middle" font-size="1.5" fill="#1565c0" opacity="0.7" font-weight="bold">{{ e.label }}</text>
+              <g v-for="(pos, label) in { left: { cx: 180, cy: 250 }, right: { cx: 1020, cy: 250 } }" :key="label">
+                <rect :x="pos.cx - 18" :y="pos.cy - 18" width="36" height="36" rx="6"
+                  fill="#1565c0" opacity="0.85" stroke="white" stroke-width="2"/>
+                <text :x="pos.cx" :y="pos.cy + 1" text-anchor="middle" font-size="20" fill="white">🛗</text>
+                <text :x="pos.cx" :y="pos.cy + 22" text-anchor="middle" font-size="9" fill="#1565c0" font-weight="bold">
+                  {{ label === 'left' ? 'ลิฟต์ซ้าย' : 'ลิฟต์ขวา' }}
+                </text>
               </g>
-              <g v-for="e in [LAYOUTS[currentFloor]?.elevator2]" :key="e?.id">
-                <rect :x="(e?.x||0)-2.5" :y="(e?.y||0)-2.5" width="5" height="5" rx="1" fill="#1565c0" opacity="0.8" stroke="white" stroke-width="0.3"/>
-                <text :x="e?.x||0" :y="(e?.y||0)+0.3" text-anchor="middle" font-size="2.5" fill="white">🛗</text>
+
+              <!-- Route path overlay -->
+              <g v-if="showRoute">
+                <template v-for="(step, si) in routeSteps" :key="'r'+si">
+                  <g v-if="step.type === 'walk' && step.floor === currentFloor">
+                    <template v-if="step.floor === currentFloor">
+                      <!-- Compute path points from route -->
+                    </template>
+                  </g>
+                </template>
+
+                <!-- Start dot -->
+                <circle v-if="getCentroid(currentFloor, startRoom)"
+                  :cx="getCentroid(currentFloor, startRoom)!.x"
+                  :cy="getCentroid(currentFloor, startRoom)!.y"
+                  r="8" fill="#2e7d32" stroke="white" stroke-width="3" opacity="0.95"/>
+                <!-- End dot -->
+                <circle v-if="getCentroid(currentFloor, endRoom)"
+                  :cx="getCentroid(currentFloor, endRoom)!.x"
+                  :cy="getCentroid(currentFloor, endRoom)!.y"
+                  r="8" fill="#d32f2f" stroke="white" stroke-width="3" opacity="0.95"/>
               </g>
-              <!-- Route paths on this floor -->
-              <g v-for="(step, si) in routeSteps" :key="'s'+si">
-                <g v-if="step.type === 'walk' && step.floor === currentFloor && step.path && step.path.length >= 2">
-                  <polyline :points="step.path.map(p=>`${p.x},${p.y}`).join(' ')" fill="none" stroke="#1565c0" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" opacity="0.25" filter="url(#g)"/>
-                  <polyline :points="step.path.map(p=>`${p.x},${p.y}`).join(' ')" fill="none" stroke="#1565c0" stroke-width="0.55" stroke-linecap="round" stroke-linejoin="round" opacity="0.9"/>
-                  <template v-for="(p, pi) in step.path" :key="'a'+pi">
-                    <polygon v-if="pi > 0"
-                      :points="(()=>{const a=step.path![pi-1],b=step.path![pi];const ang=Math.atan2(b.y-a.y,b.x-a.x);const s=0.45;return `${b.x},${b.y} ${b.x-s*Math.cos(ang-0.5)},${b.y-s*Math.sin(ang-0.5)} ${b.x-s*Math.cos(ang+0.5)},${b.y-s*Math.sin(ang+0.5)}`})()"
-                      fill="#1565c0" opacity="0.85"/>
-                  </template>
-                </g>
-              </g>
-              <!-- Start/end circles -->
-              <circle v-if="showRoute && routeSteps.find(s=>s.type==='walk')?.path?.[0]"
-                :cx="routeSteps.find(s=>s.type==='walk')!.path![0].x" :cy="routeSteps.find(s=>s.type==='walk')!.path![0].y"
-                r="1.1" fill="#2e7d32" stroke="white" stroke-width="0.35" opacity="0.95"/>
-              <circle v-if="showRoute"
-                :cx="routeSteps.filter(s=>s.type==='walk').slice(-1)[0]?.path?.slice(-1)[0]?.x||0"
-                :cy="routeSteps.filter(s=>s.type==='walk').slice(-1)[0]?.path?.slice(-1)[0]?.y||0"
-                r="1.1" fill="#d32f2f" stroke="white" stroke-width="0.35" opacity="0.95"/>
             </svg>
           </div>
         </div>
       </div>
 
-      <!-- RIGHT: Directions panel -->
+      <!-- RIGHT: Directions Panel -->
       <div class="w-full lg:w-96 flex-shrink-0 flex flex-col gap-3">
-        <!-- Route steps -->
         <div v-if="showRoute" class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
           <div class="p-4 bg-gradient-to-r from-green-700 via-orange-600 to-red-700 text-white">
             <div class="font-bold text-sm flex items-center gap-2">
-              <span>🧭</span> เส้นทาง <span class="font-mono text-xs bg-white/20 px-2 py-0.5 rounded">🟢 {{ startRoom }}</span> → <span class="font-mono text-xs bg-white/20 px-2 py-0.5 rounded">🔴 {{ endRoom }}</span>
+              🧭 เส้นทาง <span class="font-mono text-xs bg-white/20 px-2 py-0.5 rounded">🟢 {{ startRoom }}</span> → <span class="font-mono text-xs bg-white/20 px-2 py-0.5 rounded">🔴 {{ endRoom }}</span>
             </div>
           </div>
-
-          <!-- Detailed directions -->
           <div class="p-3 bg-green-50 border-b border-gray-100">
-            <div class="text-xs font-semibold text-green-700 mb-2">📋 รายละเอียดการเดินทาง</div>
+            <div class="text-xs font-semibold text-green-700 mb-2">📋 รายละเอียด</div>
             <div v-for="(d, i) in detailedDirs" :key="i" class="flex items-start gap-2 py-1" :class="{'opacity-70': i === detailedDirs.length - 1}">
               <span class="text-xs mt-0.5 shrink-0">{{ d.includes('🛗') ? '🛗' : d.includes('📍') ? '📍' : d.includes('🚶') ? '🚶' : '➡️' }}</span>
               <span class="text-xs leading-relaxed" v-html="d"></span>
             </div>
           </div>
-
           <div class="divide-y divide-gray-50">
             <div v-for="(step, i) in routeSteps" :key="i"
               class="flex items-start gap-3 p-3.5 cursor-pointer hover:bg-gray-50 transition"
               @click="step.floor ? switchFloor(step.floor) : null">
               <div class="w-7 h-7 rounded-full flex items-center justify-center text-xs shrink-0 font-bold text-white"
                 :class="step.type==='walk'?'bg-green-600':step.type==='lift'?'bg-blue-600':'bg-orange-500'">{{ i+1 }}</div>
-              <div class="text-sm leading-relaxed" v-html="step.text"></div>
+              <div class="text-sm leading-relaxed">{{ step.text }}</div>
             </div>
           </div>
           <div class="p-3 text-center border-t border-gray-50">
@@ -318,29 +345,30 @@ watch([currentFloor, showRoute, routeSteps], async () => { await nextTick(); ove
           </div>
         </div>
 
-        <!-- Empty state or room info -->
         <div v-else class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 text-center text-gray-400">
           <div class="text-4xl mb-3">🔍</div>
-          <p class="text-sm">พิมพ์ชื่อห้องที่ต้องการ<br/>ค้นหาในช่องด้านบน</p>
+          <p class="text-sm">พิมพ์ชื่อห้องที่ต้องการ<br/>หรือคลิกที่ห้องบนแผนที่</p>
           <div class="mt-4 flex flex-wrap justify-center gap-1.5">
             <button v-for="ex in ['ICT1107','ICT1402','ICT1439','ICT1207']" :key="ex"
-              @click="searchStart=ex;startRoom=ex;onFocus('end')"
+              @click="pickRoom(ex)"
               class="px-2.5 py-1.5 bg-orange-50 text-orange-700 rounded-lg text-xs font-mono hover:bg-orange-100 transition">
               {{ ex }}
             </button>
           </div>
-          <p class="text-xs mt-3 text-gray-300">คลิกเพื่อลอง — แล้วพิมพ์จุดหมาย</p>
         </div>
 
-        <!-- Nearby rooms on current floor -->
         <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
           <div class="text-xs font-semibold text-gray-500 mb-2">🏠 ห้องชั้น {{ currentFloor }}</div>
           <div class="flex flex-wrap gap-1.5">
-            <span v-for="r in ALL_ROOMS.filter(r=>r.floor===currentFloor).slice(0,10)" :key="r.code" @click="searchStart = r.code; startRoom = r.code; onFocus('end')"
+            <span v-for="r in ALL_ROOMS.filter(r => r.floor === currentFloor)" :key="r.code" @click="pickRoom(r.code)"
               class="px-2.5 py-1.5 bg-gray-50 rounded-lg text-xs font-mono text-gray-600 hover:bg-orange-50 hover:text-orange-700 cursor-pointer transition">
               {{ r.code }}
             </span>
           </div>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-3 text-center text-xs text-gray-400">
+          💡 คลิกห้องบนแผนที่เพื่อเลือก · วางเมาส์เพื่อดูชื่อ
         </div>
       </div>
     </main>
