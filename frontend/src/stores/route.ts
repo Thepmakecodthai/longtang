@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia'
+import { ref } from 'vue'
 import { generateRoute, parseRoomCode } from '@/engine/route-parser'
 import type { RouteResult } from '@/engine/route-parser'
 
@@ -35,17 +36,14 @@ export const useRouteStore = defineStore('route', () => {
 
     currentResult.value = result
 
-    // Add to history
     searchHistory.value.unshift({
       code: result.room.code,
       timestamp: Date.now(),
       result,
     })
-    // Keep only last 20
     if (searchHistory.value.length > 20) {
       searchHistory.value = searchHistory.value.slice(0, 20)
     }
-    // Save to localStorage
     try {
       localStorage.setItem('longtang-history', JSON.stringify(searchHistory.value))
     } catch {}

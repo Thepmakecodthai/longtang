@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ALL_ROOMS, getRoomsByFloor, getFloorFacilities } from '@/data/rooms'
 import type { Room } from '@/data/rooms'
@@ -9,30 +9,13 @@ const router = useRouter()
 
 const currentFloor = ref(parseInt((route.query.floor as string) || '1'))
 const highlightedRoom = ref((route.query.room as string) || '')
-const mapReady = ref(false)
+
 
 const rooms = computed(() => getRoomsByFloor(currentFloor.value))
 const facilities = computed(() => getFloorFacilities(currentFloor.value))
-const floorTitle = computed(() => `ชั้น ${currentFloor.value}`)
 
-// Wing layout grid positions
-function getRoomPosition(room: Room, index: number, totalLeft: number): { col: number; row: number } {
-  if (room.wing === 'left') {
-    return { col: 1, row: index + 1 }
-  }
-  return { col: 3, row: (index - totalLeft) + 1 }
-}
-
-const leftRooms = computed(() => rooms.value.filter(r => r.wing === 'left'))
-const rightRooms = computed(() => rooms.value.filter(r => r.wing === 'right'))
-
-function getGridRow(room: Room): number {
-  const left = leftRooms.value
-  const idx = left.findIndex(r => r.code === room.code)
-  if (idx >= 0) return idx + 1
-  const rightIdx = rightRooms.value.findIndex(r => r.code === room.code)
-  return rightIdx + 1
-}
+const leftRooms = computed(() => rooms.value.filter((r: Room) => r.wing === 'left'))
+const rightRooms = computed(() => rooms.value.filter((r: Room) => r.wing === 'right'))
 
 function selectRoom(code: string) {
   highlightedRoom.value = code
@@ -43,9 +26,7 @@ watch(() => route.query.floor, (f) => {
   if (f) currentFloor.value = parseInt(f as string)
 })
 
-onMounted(() => {
-  setTimeout(() => { mapReady.value = true }, 100)
-})
+
 </script>
 
 <template>

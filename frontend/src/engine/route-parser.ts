@@ -28,14 +28,14 @@ export function generateRoute(code: string): RouteResult | null {
 
   // Step 1: Bus info
   if (room.floor >= 1) {
-    const buses = BUS_ROUTES.filter(r => r.stops.includes('อาคาร ICT'))
-    buses.forEach(b => {
+    const buses = BUS_ROUTES.filter((r: { stops: string[] }) => r.stops.includes('อาคาร ICT'))
+    buses.forEach((b: { name: string; note: string }) => {
       busInfo.push(`${b.name}: ${b.note}`)
     })
     steps.push({
       icon: '🚌',
       text: 'นั่งรถเมล์ มพ. สายที่ผ่านอาคาร ICT',
-      detail: buses.map(b => `• ${b.name} — ${b.direction}`).join('\n'),
+      detail: buses.map((b: { name: string; direction: string }) => `• ${b.name} — ${b.direction}`).join('\n'),
     })
   }
 

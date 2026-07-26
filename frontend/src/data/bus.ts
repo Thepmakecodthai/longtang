@@ -26,6 +26,6 @@ export const BUS_ROUTES: BusRoute[] = [
   },
 ]
 
-export function getBusToICT(buildingName: string): BusRoute[] {
+export function getBusToICT(): BusRoute[] {
   return BUS_ROUTES.filter(r => r.stops.includes('อาคาร ICT'))
 }
