@@ -7,203 +7,216 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans Thai',sans-serif;background:#eef1f5;color:#1a1a2e;min-height:100vh;display:flex;flex-direction:column}
-header{background:linear-gradient(135deg,#1565c0,#0d47a1);color:#fff;padding:14px 20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;box-shadow:0 2px 8px rgba(0,0,0,.15)}
+header{background:linear-gradient(135deg,#1565c0,#0d47a1);color:#fff;padding:14px 20px}
 header h1{font-size:18px;font-weight:700}
-header .sub{font-size:12px;opacity:.85;display:block;font-weight:400}
-.container{max-width:1400px;margin:0 auto;padding:12px;width:100%;flex:1;display:flex;flex-direction:column;gap:10px}
-.search-card{background:#fff;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,.08);padding:14px}
-.search-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
-.search-field{position:relative;flex:1;min-width:150px}
-.search-field .icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:13px;pointer-events:none}
-.search-field input{width:100%;padding:10px 10px 10px 32px;border:2px solid #e0e0e0;border-radius:10px;font-size:14px;transition:border-color .2s;outline:none}
-.search-field input:focus{border-color:#1565c0;box-shadow:0 0 0 3px rgba(21,101,192,.1)}
-.search-field.start input:focus{border-color:#2e7d32;box-shadow:0 0 0 3px rgba(46,125,50,.1)}
-.search-field.end input:focus{border-color:#d32f2f;box-shadow:0 0 0 3px rgba(211,47,47,.1)}
-.btn-go{padding:10px 24px;background:linear-gradient(135deg,#2e7d32,#d32f2f);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap;transition:transform .1s,box-shadow .2s;box-shadow:0 2px 6px rgba(0,0,0,.15)}
-.btn-go:hover{box-shadow:0 4px 12px rgba(0,0,0,.2)}
-.btn-go:active{transform:scale(.97)}
-.btn-go:disabled{opacity:.5;cursor:not-allowed}
-.suggest-box{position:absolute;top:100%;left:0;right:0;background:#fff;border-radius:10px;box-shadow:0 4px 16px rgba(0,0,0,.12);border:1px solid #e0e0e0;overflow:hidden;z-index:30;margin-top:4px}
-.suggest-item{width:100%;padding:10px 14px;text-align:left;background:none;border:none;cursor:pointer;display:flex;align-items:center;gap:10px;font-size:13px;transition:background .15s}
-.suggest-item:hover,.suggest-item.sel{background:#fff3e0}
-.suggest-item .code{font-family:monospace;font-weight:600;color:#e65100}
-.suggest-item .meta{font-size:11px;color:#999}
-.map-card{background:#fff;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,.08);overflow:hidden;flex:1;display:flex;flex-direction:column}
-.floor-tabs{display:flex;background:#f8f9fa;border-bottom:1px solid #e0e0e0}
-.floor-tab{flex:1;padding:12px;font-size:14px;font-weight:500;cursor:pointer;border:none;background:transparent;color:#5f6368;transition:.2s;border-bottom:3px solid transparent;text-align:center}
-.floor-tab:hover{background:#e8eaed}
-.floor-tab.active{color:#1565c0;border-bottom-color:#1565c0;background:#fff;font-weight:600}
-.map-view{position:relative;flex:1;background:#eef1f5;min-height:450px;overflow:hidden}
-.map-view img{width:100%;height:auto;display:block}
-.route-svg{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none}
-.content-wrap{display:flex;gap:12px;flex:1}
-.left-col{flex:1;min-width:0;display:flex;flex-direction:column;gap:10px}
-.right-col{width:340px;flex-shrink:0;display:flex;flex-direction:column;gap:10px}
-
-.dir-card{background:#fff;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,.08);overflow:hidden}
-.dir-header{padding:14px 16px;background:linear-gradient(135deg,#2e7d32,#1565c0,#d32f2f);color:#fff;font-weight:600;font-size:14px}
-.dir-header .rooms{margin-top:4px;font-size:12px;opacity:.9}
-.dir-detail{padding:12px 16px;background:#e8f5e9;border-bottom:1px solid #e0e0e0}
-.dir-detail .dstep{display:flex;align-items:flex-start;gap:8px;padding:3px 0;font-size:12px;line-height:1.5}
-.dir-detail .dstep strong{font-weight:600}
-.dir-steps{max-height:350px;overflow-y:auto}
-.dir-step{display:flex;align-items:flex-start;gap:10px;padding:10px 16px;border-bottom:1px solid #f5f5f5;cursor:pointer;transition:background .15s}
-.dir-step:hover{background:#f8f9fa}
-.step-num{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;flex-shrink:0}
-.step-num.walk{background:#2e7d32}
-.step-num.lift{background:#1565c0}
-.step-num.arr{background:#e65100}
-.step-text{font-size:13px;line-height:1.5;padding-top:3px}
-.dir-footer{padding:10px;text-align:center;border-top:1px solid #f5f5f5}
-.dir-footer button{background:none;border:1px solid #e0e0e0;border-radius:8px;padding:5px 14px;font-size:12px;color:#999;cursor:pointer;transition:.2s}
-.dir-footer button:hover{background:#f5f5f5;color:#666}
-
-.empty-state{padding:30px 20px;text-align:center;color:#999}
-.empty-state .big{font-size:40px;margin-bottom:10px}
-.empty-state h3{font-size:16px;margin-bottom:6px;color:#333}
-.empty-state p{font-size:13px;line-height:1.6}
-.examples{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:12px}
-.examples button{padding:6px 12px;background:#fff3e0;border:none;border-radius:8px;font-size:12px;font-family:monospace;color:#e65100;cursor:pointer;transition:.2s}
-.examples button:hover{background:#ffe0b2}
-.room-list{padding:12px 16px}
-.room-list .title{font-size:11px;font-weight:600;color:#999;margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px}
-.room-tags{display:flex;flex-wrap:wrap;gap:4px}
-.room-tags button{padding:4px 10px;background:#f5f5f5;border:none;border-radius:6px;font-size:11px;font-family:monospace;color:#666;cursor:pointer;transition:.2s}
-.room-tags button:hover{background:#fff3e0;color:#e65100}
-.route-bar{display:none;background:#e3f2fd;border-radius:8px;padding:10px 14px;font-size:13px;gap:8px;flex-wrap:wrap;align-items:center}
-.route-bar.show{display:flex}
-.tag{padding:3px 8px;border-radius:5px;font-weight:600;font-size:12px}
-.tag.g{background:#e8f5e9;color:#2e7d32}
-.tag.r{background:#ffebee;color:#d32f2f}
-
-@media(max-width:900px){.content-wrap{flex-direction:column}.right-col{width:100%}.search-row{flex-direction:column}.search-field{width:100%}.btn-go{width:100%}}
-@media(max-width:600px){header h1{font-size:16px}.floor-tab{font-size:12px;padding:10px 8px}.container{padding:8px;gap:8px}.map-view{min-height:300px}}
+header .s{font-size:12px;opacity:.85;display:block;font-weight:400}
+.c{max-width:1400px;margin:0 auto;padding:12px;width:100%;flex:1;display:flex;flex-direction:column;gap:10px}
+.sc{background:#fff;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,.08);padding:12px}
+.sr{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.sf{position:relative;flex:1;min-width:140px}
+.sf .ic{position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:13px;pointer-events:none}
+.sf input{width:100%;padding:10px 10px 10px 32px;border:2px solid #e0e0e0;border-radius:10px;font-size:14px;transition:border-color .2s;outline:none}
+.sf input:focus{border-color:#1565c0;box-shadow:0 0 0 3px rgba(21,101,192,.1)}
+.sb{position:absolute;top:100%;left:0;right:0;background:#fff;border-radius:10px;box-shadow:0 4px 16px rgba(0,0,0,.12);border:1px solid #e0e0e0;overflow:hidden;z-index:30;margin-top:4px}
+.si{width:100%;padding:10px 14px;text-align:left;background:none;border:none;cursor:pointer;display:flex;align-items:center;gap:10px;font-size:13px;transition:background .15s}
+.si:hover,.si.sel{background:#fff3e0}.si .cd{font-family:monospace;font-weight:600;color:#e65100}.si .mt{font-size:11px;color:#999}
+.bg{padding:10px 24px;background:linear-gradient(135deg,#2e7d32,#d32f2f);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap}
+.bg:active{transform:scale(.97)}.bg:disabled{opacity:.5;cursor:not-allowed}
+.mc{background:#fff;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,.08);overflow:hidden;flex:1;display:flex;flex-direction:column}
+.ft{display:flex;background:#f8f9fa;border-bottom:1px solid #e0e0e0}
+.ftb{flex:1;padding:12px;font-size:14px;font-weight:500;cursor:pointer;border:none;background:transparent;color:#5f6368;transition:.2s;border-bottom:3px solid transparent;text-align:center}
+.ftb:hover{background:#e8eaed}.ftb.on{color:#1565c0;border-bottom-color:#1565c0;background:#fff;font-weight:600}
+.mv{position:relative;flex:1;background:#eef1f5;min-height:450px;overflow:hidden}
+.mv img{width:100%;height:auto;display:block}
+.rs{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none}
+.cw{display:flex;gap:12px;flex:1}.lc{flex:1;min-width:0;display:flex;flex-direction:column;gap:10px}
+.rc{width:340px;flex-shrink:0;display:flex;flex-direction:column;gap:10px}
+.dc{background:#fff;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,.08);overflow:hidden}
+.dh{padding:14px 16px;background:linear-gradient(135deg,#2e7d32,#1565c0,#d32f2f);color:#fff;font-weight:600;font-size:14px}
+.dh .rm{margin-top:4px;font-size:12px;opacity:.9}
+.dd{padding:12px 16px;background:#e8f5e9;border-bottom:1px solid #e0e0e0}
+.dd .ds{display:flex;align-items:flex-start;gap:8px;padding:3px 0;font-size:12px;line-height:1.5}
+.dsx{max-height:350px;overflow-y:auto}
+.dx{display:flex;align-items:flex-start;gap:10px;padding:10px 16px;border-bottom:1px solid #f5f5f5;cursor:pointer;transition:background .15s}
+.dx:hover{background:#f8f9fa}
+.sn{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;flex-shrink:0}
+.sn.wk{background:#2e7d32}.sn.lf{background:#1565c0}.sn.ar{background:#e65100}
+.st{font-size:13px;line-height:1.5;padding-top:3px}
+.df{padding:10px;text-align:center;border-top:1px solid #f5f5f5}
+.df button{background:none;border:1px solid #e0e0e0;border-radius:8px;padding:5px 14px;font-size:12px;color:#999;cursor:pointer}
+.df button:hover{background:#f5f5f5;color:#666}
+.em{padding:30px 20px;text-align:center;color:#999}
+.em .b{font-size:40px;margin-bottom:10px}.em h3{font-size:16px;color:#333}
+.em p{font-size:13px;line-height:1.6}
+.ex{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:12px}
+.ex button{padding:6px 12px;background:#fff3e0;border:none;border-radius:8px;font-size:12px;font-family:monospace;color:#e65100;cursor:pointer}
+.ex button:hover{background:#ffe0b2}
+.rl{padding:12px 16px}
+.rl .t{font-size:11px;font-weight:600;color:#999;margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px}
+.rt{display:flex;flex-wrap:wrap;gap:4px}
+.rt button{padding:4px 10px;background:#f5f5f5;border:none;border-radius:6px;font-size:11px;font-family:monospace;color:#666;cursor:pointer}
+.rt button:hover{background:#fff3e0;color:#e65100}
+.rb{display:none;background:#e3f2fd;border-radius:8px;padding:10px 14px;font-size:13px;gap:8px;flex-wrap:wrap;align-items:center}
+.rb.on{display:flex}.tg{padding:3px 8px;border-radius:5px;font-weight:600;font-size:12px}
+.tg.g{background:#e8f5e9;color:#2e7d32}.tg.r{background:#ffebee;color:#d32f2f}
+.hint{background:#fff;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,.08);padding:12px;text-align:center;font-size:12px;color:#999}
+@media(max-width:900px){.cw{flex-direction:column}.rc{width:100%}.sr{flex-direction:column}.sf{width:100%}.bg{width:100%}}
+@media(max-width:600px){header h1{font-size:16px}.ftb{font-size:12px;padding:10px 8px}.c{padding:8px;gap:8px}.mv{min-height:300px}}
 </style>
 </head>
 <body>
-<header><div><h1>🧭 ICT Navigator</h1><span class="sub">มหาวิทยาลัยพะเยา · นำทางภายในอาคาร ICT</span></div></header>
-<div class="container">
-  <div class="search-card">
-    <div class="search-row">
-      <div class="search-field start"><span class="icon">🟢</span>
-        <input id="startInput" autocomplete="off" placeholder="ค้นหาจุดเริ่มต้น เช่น ICT1107">
-        <div class="suggest-box" id="startSuggest" style="display:none"></div>
-      </div>
-      <span style="color:#ccc;font-size:13px">→</span>
-      <div class="search-field end"><span class="icon">🔴</span>
-        <input id="endInput" autocomplete="off" placeholder="ค้นหาจุดหมาย เช่น ICT1439">
-        <div class="suggest-box" id="endSuggest" style="display:none"></div>
-      </div>
-      <button class="btn-go" id="goBtn">🔎 นำทาง</button>
-    </div>
-  </div>
-  <div class="route-bar" id="routeBar"></div>
-  <div class="content-wrap">
-    <div class="left-col">
-      <div class="map-card">
-        <div class="floor-tabs" id="floorTabs">
-          <button class="floor-tab" data-f="1">ชั้น 1</button>
-          <button class="floor-tab" data-f="2">ชั้น 2</button>
-          <button class="floor-tab" data-f="3">ชั้น 3</button>
-          <button class="floor-tab" data-f="4">ชั้น 4</button>
-        </div>
-        <div class="map-view" id="mapView">
-          <img id="img1" src="ict/floor1.png" style="display:none" data-f="1">
-          <img id="img2" src="ict/floor2.png" style="display:none" data-f="2">
-          <img id="img3" src="ict/floor3.png" style="display:none" data-f="3">
-          <img id="img4" src="ict/floor4.png" style="display:none" data-f="4">
-          <svg class="route-svg" id="routeSvg"></svg>
-          <div id="startDot" style="position:absolute;width:18px;height:18px;border-radius:50%;background:#2e7d32;border:3px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.4);display:none;transform:translate(-50%,-50%);pointer-events:none;z-index:10"></div>
-          <div id="endDot" style="position:absolute;width:18px;height:18px;border-radius:50%;background:#d32f2f;border:3px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.4);display:none;transform:translate(-50%,-50%);pointer-events:none;z-index:10"></div>
-        </div>
-      </div>
-    </div>
-    <div class="right-col">
-      <div class="dir-card" id="dirCard" style="display:none">
-        <div class="dir-header">🧭 เส้นทาง <div class="rooms" id="dirHeaderRooms"></div></div>
-        <div class="dir-detail" id="dirDetail"></div>
-        <div class="dir-steps" id="dirSteps"></div>
-        <div class="dir-footer"><button id="clearBtn">✕ ล้างเส้นทาง</button></div>
-      </div>
-      <div id="emptyState" class="empty-state">
-        <div class="big">🔍</div>
-        <h3>ค้นหาเส้นทาง</h3>
-        <p>พิมพ์ชื่อห้องเริ่มต้นและปลายทางด้านบน<br>หรือคลิกตัวอย่างด้านล่าง</p>
-        <div class="examples">
-          <button data-room="ICT1107">ICT1107</button>
-          <button data-room="ICT1402">ICT1402</button>
-          <button data-room="ICT1439">ICT1439</button>
-          <button data-room="ICT1207">ICT1207</button>
-        </div>
-      </div>
-      <div class="room-list">
-        <div class="title">🏠 ห้องชั้น <span id="floorLabel">1</span></div>
-        <div class="room-tags" id="roomTags"></div>
-      </div>
-    </div>
-  </div>
+<header><div><h1>🧭 ICT Navigator</h1><span class="s">มหาวิทยาลัยพะเยา · นำทางภายในอาคาร ICT</span></div></header>
+<div class="c">
+<div class="sc">
+<div class="sr">
+<div class="sf"><span class="ic">🟢</span>
+<input id="si" autocomplete="off" placeholder="ค้นหาจุดเริ่มต้น เช่น ICT1107">
+<div class="sb" id="ss" style="display:none"></div>
+</div>
+<span style="color:#ccc;font-size:13px">→</span>
+<div class="sf"><span class="ic">🔴</span>
+<input id="ei" autocomplete="off" placeholder="ค้นหาจุดหมาย เช่น ICT1439">
+<div class="sb" id="es" style="display:none"></div>
+</div>
+<button class="bg" id="gb">🔎 นำทาง</button>
+</div>
+</div>
+<div class="rb" id="rb"></div>
+<div class="cw">
+<div class="lc">
+<div class="mc">
+<div class="ft" id="ft"></div>
+<div class="mv" id="mv">
+<img id="i1" src="ict/1_4.png" style="display:none">
+<img id="i2" src="ict/2_3.png" style="display:none">
+<img id="i3" src="ict/3_3.png" style="display:none">
+<img id="i4" src="ict/4_3.png" style="display:none">
+<svg class="rs" id="rs" viewBox="0 0 1200 840"></svg>
+<div id="sd" style="position:absolute;width:16px;height:16px;border-radius:50%;background:#2e7d32;border:3px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.4);display:none;transform:translate(-50%,-50%);pointer-events:none;z-index:10"></div>
+<div id="ed" style="position:absolute;width:16px;height:16px;border-radius:50%;background:#d32f2f;border:3px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.4);display:none;transform:translate(-50%,-50%);pointer-events:none;z-index:10"></div>
+</div>
+</div>
+</div>
+<div class="rc">
+<div class="dc" id="dc" style="display:none">
+<div class="dh">🧭 เส้นทาง <div class="rm" id="dhr"></div></div>
+<div class="dd" id="dd"></div>
+<div class="dsx" id="dsx"></div>
+<div class="df"><button id="cb">✕ ล้างเส้นทาง</button></div>
+</div>
+<div id="es0" class="em">
+<div class="b">🔍</div>
+<h3>ค้นหาเส้นทาง</h3>
+<p>พิมพ์ชื่อห้องหรือคลิกที่ห้องบนแผนที่</p>
+<div class="ex">
+<button onclick="pick('ICT1107')">ICT1107</button>
+<button onclick="pick('ICT1402')">ICT1402</button>
+<button onclick="pick('ICT1439')">ICT1439</button>
+<button onclick="pick('ICT1207')">ICT1207</button>
+</div>
+</div>
+<div class="rl"><div class="t">🏠 ห้องชั้น <span id="fl">1</span></div><div class="rt" id="rt"></div></div>
+<div class="hint">💡 คลิกห้องบนแผนที่เพื่อเลือก · วางเมาส์เพื่อดูชื่อ</div>
+</div>
+</div>
 </div>
 <script>
-// ===== DATA =====
-const ROOMS = [
-  {code:"ICT1112",floor:1,wing:"left"},{code:"ICT1111",floor:1,wing:"left"},{code:"ICT1110",floor:1,wing:"left"},{code:"ICT1109",floor:1,wing:"left"},{code:"ICT1108",floor:1,wing:"left"},{code:"ICT1107",floor:1,wing:"left"},{code:"ICT1106",floor:1,wing:"right"},{code:"ICT1105",floor:1,wing:"right"},{code:"ICT1104",floor:1,wing:"right"},{code:"ICT1104/1",floor:1,wing:"right"},{code:"ICT1103",floor:1,wing:"right"},{code:"ICT1103/1",floor:1,wing:"right"},{code:"ICT1102",floor:1,wing:"right"},{code:"ICT1102/1",floor:1,wing:"right"},
-  {code:"ICT1247",floor:2,wing:"left"},{code:"ICT1241",floor:2,wing:"left"},{code:"ICT1241/1",floor:2,wing:"left"},{code:"ICT1235",floor:2,wing:"left"},{code:"ICT1235/1",floor:2,wing:"left"},{code:"ICT1229",floor:2,wing:"left"},{code:"ICT1224",floor:2,wing:"left"},{code:"ICT1219",floor:2,wing:"right"},{code:"ICT1213",floor:2,wing:"right"},{code:"ICT1207",floor:2,wing:"right"},{code:"ICT1202",floor:2,wing:"right"},
-  {code:"ICT1352",floor:3,wing:"left"},{code:"ICT1355",floor:3,wing:"top"},{code:"ICT1356",floor:3,wing:"top"},{code:"ICT1357",floor:3,wing:"top"},{code:"ICT1359",floor:3,wing:"top"},{code:"ICT1340",floor:3,wing:"left"},{code:"ICT1334",floor:3,wing:"left"},{code:"ICT1328",floor:3,wing:"bottom"},{code:"ICT1323",floor:3,wing:"bottom"},{code:"ICT1318",floor:3,wing:"bottom"},{code:"ICT1312",floor:3,wing:"bottom"},{code:"ICT1307",floor:3,wing:"right"},{code:"ICT1302",floor:3,wing:"right"},
-  {code:"ICT1439",floor:4,wing:"left"},{code:"ICT1434",floor:4,wing:"left"},{code:"ICT1429",floor:4,wing:"left"},{code:"ICT1424",floor:4,wing:"left"},{code:"ICT1419",floor:4,wing:"right"},{code:"ICT1419/1",floor:4,wing:"right"},{code:"ICT1413",floor:4,wing:"right"},{code:"ICT1413/1",floor:4,wing:"right"},{code:"ICT1407",floor:4,wing:"right"},{code:"ICT1402",floor:4,wing:"right"}
-];
-const LAYOUTS = {
-  1:{rooms:{"ICT1112":[5.5,28],"ICT1111":[5.5,40],"ICT1110":[5.5,52],"ICT1109":[5.5,64],"ICT1108":[5.5,76],"ICT1107":[9,47],"ICT1106":[88,20],"ICT1105":[88,32],"ICT1104":[88,44],"ICT1104/1":[83,44],"ICT1103":[88,56],"ICT1103/1":[83,56],"ICT1102":[88,68],"ICT1102/1":[83,68]},e1:[27,22,"ลิฟต์ซ้าย"],e2:[67,22,"ลิฟต์ขวา"],corr:[[10,46],[27,24],[50,24],[67,24],[83,24]]},
-  2:{rooms:{"ICT1247":[10,18],"ICT1241":[8,40],"ICT1241/1":[5,40],"ICT1235":[8,52],"ICT1235/1":[5,52],"ICT1229":[8,64],"ICT1224":[8,76],"ICT1219":[90,72],"ICT1213":[90,58],"ICT1207":[90,44],"ICT1202":[90,30]},e1:[18,30,"ลิฟต์ซ้าย"],e2:[78,30,"ลิฟต์ขวา"],corr:[[12,55],[18,32],[50,26],[78,32],[86,55]]},
-  3:{rooms:{"ICT1352":[12,18],"ICT1355":[32,10],"ICT1356":[50,10],"ICT1357":[68,10],"ICT1359":[50,24],"ICT1340":[10,52],"ICT1334":[10,64],"ICT1328":[22,75],"ICT1323":[38,75],"ICT1318":[55,75],"ICT1312":[72,75],"ICT1307":[85,65],"ICT1302":[85,52]},e1:[35,28,"ลิฟต์ซ้าย"],e2:[78,28,"ลิฟต์ขวา"],corr:[[14,40],[22,30],[35,30],[50,28],[78,30],[82,55]]},
-  4:{rooms:{"ICT1439":[8,22],"ICT1434":[8,36],"ICT1429":[8,50],"ICT1424":[8,64],"ICT1419":[88,22],"ICT1419/1":[83,22],"ICT1413":[88,36],"ICT1413/1":[83,36],"ICT1407":[88,50],"ICT1402":[88,64]},e1:[22,20,"ลิฟต์ซ้าย"],e2:[75,20,"ลิฟต์ขวา"],corr:[[12,42],[22,22],[50,18],[75,22],[82,42]]}
+// ===== POLYGON DATA =====
+const POLY = {
+1:[["ICT1112","70,345 125,365 75,520 15,495"],["ICT1111","125,365 175,385 135,545 75,520"],["ICT1110","175,385 235,410 205,570 135,545"],["ICT1109","235,410 300,440 275,600 205,570"],["ICT1108","300,440 440,440 440,600 275,600"],["ICT1107","440,440 555,440 555,600 440,600"],["ICT1106","620,380 680,380 680,600 620,600"],["ICT1105","680,380 740,380 740,600 680,600"],["ICT1104/1","740,380 810,380 810,600 740,600"],["ICT1104","810,380 875,380 910,600 810,600"],["ICT1103/1","875,380 940,350 990,555 910,600"],["ICT1103","940,350 1000,325 1060,515 990,555"],["ICT1102/1","1000,325 1060,300 1125,480 1060,515"],["ICT1102","1060,300 1100,280 1175,455 1125,480"]],
+2:[["ICT1247","260,315 390,365 330,510 225,450"],["ICT1241/1","125,675 165,650 180,740 125,715"],["ICT1241","165,650 225,620 260,705 180,740"],["ICT1235/1","225,620 270,600 305,685 260,705"],["ICT1235","270,600 325,585 365,670 305,685"],["ICT1229","325,585 450,580 470,670 365,670"],["ICT1224","450,580 565,580 565,670 470,670"],["ICT1219","620,580 720,580 720,680 620,680"],["ICT1213","720,580 840,570 860,670 720,680"],["ICT1207","840,570 960,520 1020,600 860,670"],["ICT1202","960,520 1060,470 1120,560 1020,600"]],
+3:[["ICT1352","395,275 505,310 475,385 370,350"],["ICT1355","605,320 640,320 640,355 605,355"],["ICT1356","640,320 675,320 675,355 640,355"],["ICT1357","675,320 705,320 705,355 675,355"],["ICT1359","565,375 735,375 745,395 650,445 555,395"],["ICT1340","255,605 345,635 300,765 210,725"],["ICT1334","345,635 430,665 405,795 300,765"],["ICT1328","430,665 535,670 535,800 405,795"],["ICT1323","535,670 635,670 635,800 535,800"],["ICT1318","685,625 780,625 795,800 685,800"],["ICT1312","780,625 880,615 915,795 795,800"],["ICT1307","880,615 990,575 1050,745 915,795"],["ICT1302","990,575 1100,535 1165,695 1050,745"]],
+4:[["ICT1439","125,455 225,495 180,620 75,570"],["ICT1434","225,495 335,535 315,670 180,620"],["ICT1429","335,535 455,540 455,670 315,670"],["ICT1424","455,540 570,540 570,670 455,670"],["ICT1419/1","630,485 690,485 690,690 630,690"],["ICT1419","690,485 745,485 745,690 690,690"],["ICT1413/1","745,485 805,485 805,690 745,690"],["ICT1413","805,485 860,475 905,690 805,690"],["ICT1407","860,475 970,440 1050,630 905,690"],["ICT1402","970,440 1080,400 1150,600 1050,630"]]
 };
-// ===== HELPERS =====
-function dist(a,b){return Math.hypot(a[0]-b[0],a[1]-b[1])}
-function nearElev(l,code){const p=l.rooms[code];if(!p)return l.e1;return dist(p,l.e1)<=dist(p,l.e2)?l.e1:l.e2}
-function wingOf(code){const r=ROOMS.find(x=>x.code===code);return r?r.wing:'left'}
-function rSide(code){const w=wingOf(code);return w==='left'?'ปีกซ้าย':w==='right'?'ปีกขวา':'ตรงกลาง'}
-function pathOnFloor(l,fCode,tCode){const f=l.rooms[fCode],t=l.rooms[tCode];if(!f||!t)return[];const c=l.corr;if(!c.length)return[f,t];let ci=0,cid=Infinity;for(let i=0;i<c.length;i++){const d=dist(f,c[i]);if(d<cid){cid=d;ci=i}}let cj=0,cjd=Infinity;for(let i=0;i<c.length;i++){const d=dist(t,c[i]);if(d<cjd){cjd=d;cj=i}}const p=[f];const s=ci<=cj?1:-1;for(let i=ci;(s>0?i<=cj:i>=cj);i+=s)p.push(c[i]);if(p.length<2||dist(p[p.length-1],t)>2)p.push(t);return p}
-function calcRoute(s,e){const sf=+s[3],ef=+e[3];const steps=[];const fls=new Set();if(sf===ef){const l=LAYOUTS[sf];steps.push({t:'walk',txt:'เดินจาก '+s+' ไป '+e+' ภายในชั้น '+sf,f:sf,path:pathOnFloor(l,s,e)});fls.add(sf)}else{const dir=sf<ef?'ขึ้น':'ลง';const sL=LAYOUTS[sf],eL=LAYOUTS[ef];const e1=nearElev(sL,s),e2=nearElev(eL,e);const d=Math.abs(ef-sf);steps.push({t:'walk',txt:'เดินจาก '+s+' ไป '+e1[2]+' (ชั้น '+sf+')',f:sf,path:[sL.rooms[s],e1]});fls.add(sf);steps.push({t:'lift',txt:'🛗 ขึ้นลิฟต์'+dir+'ไปชั้น '+ef+' ('+d+' ชั้น)',ff:sf,tf:ef});for(let m=Math.min(sf,ef)+1;m<Math.max(sf,ef);m++)fls.add(m);steps.push({t:'walk',txt:'เมื่อถึงชั้น '+ef+' เดินจากลิฟต์ไป '+e,f:ef,path:[e2,eL.rooms[e]]});fls.add(ef)}steps.push({t:'arr',txt:'📍 ถึง '+e+' ชั้น '+ef+' แล้ว'});return{steps,floors:[...fls].sort()}}
-function describeDetailed(s,e){const sf=+s[3],ef=+e[3];const sw=rSide(s),ew=rSide(e);const d=[];if(sf===ef){const w=wingOf(s)===wingOf(e)?'ตรงไปตามทางเดิน':'เดินข้ามไป'+ew;d.push('🚶 ออกจาก <b>'+s+'</b> ('+sw+') ออกมาทางเดินกลาง');d.push('➡️ '+w);d.push('📍 ถึง <b>'+e+'</b> ('+ew+') ทางเดินฝั่ง'+(wingOf(e)==='left'?'ซ้ายมือ':'ขวามือ'))}else{const dir=sf<ef?'ขึ้น':'ลง';const diff=Math.abs(ef-sf);const e1=nearElev(LAYOUTS[sf],s);const eS=e1[2];const ds=eS==='ลิฟต์ซ้าย'?'ซ้าย':'ขวา';const e2=nearElev(LAYOUTS[ef],e);const dS=e2[2]==='ลิฟต์ซ้าย'?'ซ้าย':'ขวา';d.push('🚶 ออกจาก <b>'+s+'</b> ('+sw+', ชั้น '+sf+')');d.push('➡️ เดินไปลิฟต์ฝั่ง'+ds+'ของชั้น '+sf);d.push('🛗 ขึ้นลิฟต์'+dir+'ไป <b>ชั้น '+ef+'</b> ('+diff+' ชั้น)');const dw=dS===ds?'ตรงไปตามทางเดิน':'เดินข้ามไปฝั่ง'+dS;d.push('🚶 เมื่อถึงชั้น '+ef+' ออกจากลิฟต์ฝั่ง'+dS);d.push('➡️ '+dw);d.push('📍 เลี้ยวเข้าทางเดิน'+ew+' — จะพบ <b>'+e+'</b> '+(wingOf(e)==='left'?'อยู่ทางซ้ายมือ':'อยู่ทางขวามือ'))}return d}
+const ROOMS=[];
+for(let f=1;f<=4;f++)POLY[f].forEach(p=>ROOMS.push({code:p[0],floor:f,pts:p[1]}));
+function center(pts){const c=pts.split(' ').map(p=>p.split(',').map(Number));const n=c.length;return{x:c.reduce((s,v)=>s+v[0],0)/n,y:c.reduce((s,v)=>s+v[1],0)/n}}
+function wing(code){const e=+code.slice(3,4);return e<=2?'right':e>=6?'left':(+code.slice(-2)<=10?'left':'right')}
+function rs(code){return wing(code)==='left'?'ปีกซ้าย':'ปีกขวา'}
 // ===== STATE =====
-let curFloor=1,startRoom='',endRoom='',showRoute=false,routeResult=null,mode='start';
-// ===== DOM REFS =====
-const $=(id)=>document.getElementById(id);
-const startInput=$('startInput'),endInput=$('endInput'),startSuggest=$('startSuggest'),endSuggest=$('endSuggest');
-const goBtn=$('goBtn'),routeBar=$('routeBar'),dirCard=$('dirCard'),dirSteps=$('dirSteps'),dirDetail=$('dirDetail'),dirHeaderRooms=$('dirHeaderRooms'),clearBtn=$('clearBtn');
-const svg=$('routeSvg'),startDot=$('startDot'),endDot=$('endDot'),emptyState=$('emptyState'),floorLabel=$('floorLabel'),roomTags=$('roomTags');
+let cf=1,sr='',er='',sr2='',er2='',sh=false,rr=null,md='start',hr='';
+// ===== DOM =====
+const $=id=>document.getElementById(id);
+const si=$('si'),ei=$('ei'),ss=$('ss'),es=$('es'),gb=$('gb'),rb=$('rb'),dc=$('dc'),dhr=$('dhr'),dd=$('dd'),dsx=$('dsx'),cb=$('cb'),rsvg=$('rs'),sd=$('sd'),ed=$('ed'),es0=$('es0'),fl=$('fl'),rt=$('rt'),mv=$('mv');
 // ===== FLOOR TABS =====
-document.querySelectorAll('.floor-tab').forEach(t=>{t.addEventListener('click',()=>{document.querySelectorAll('.floor-tab').forEach(x=>x.classList.remove('active'));t.classList.add('active');curFloor=+t.dataset.f;showFloor(curFloor)})});
+const ft=$('ft');ft.innerHTML='';for(let f=1;f<=4;f++){const b=document.createElement('button');b.className='ftb';b.textContent='ชั้น '+f;b.onclick=()=>{document.querySelectorAll('.ftb').forEach(x=>x.classList.remove('on'));b.classList.add('on');cf=f;showFloor(f)};ft.appendChild(b)}document.querySelector('.ftb').classList.add('on');
 // ===== SUGGESTIONS =====
-function getSuggestions(q){const u=q.toUpperCase();if(!u)return[];return ROOMS.filter(r=>r.code.includes(u)).slice(0,8)}
-function showSugs(container,input,m){container.innerHTML='';const sugs=getSuggestions(input.value);if(!sugs.length){container.style.display='none';return}mode=m;sugs.forEach((r,i)=>{const btn=document.createElement('button');btn.className='suggest-item';btn.innerHTML='<span class="code">'+r.code+'</span><span class="meta">ชั้น '+r.floor+' · '+rSide(r.code)+'</span>';btn.onmousedown=()=>{input.value=r.code;if(mode==='start')startRoom=r.code;else endRoom=r.code;container.style.display='none';if(startRoom&&endRoom)doRoute()};container.appendChild(btn)});container.style.display='block'}
-startInput.addEventListener('input',()=>{showSugs(startSuggest,startInput,'start')});
-startInput.addEventListener('focus',()=>{showSugs(startSuggest,startInput,'start')});
-startInput.addEventListener('blur',()=>setTimeout(()=>startSuggest.style.display='none',200));
-endInput.addEventListener('input',()=>{showSugs(endSuggest,endInput,'end')});
-endInput.addEventListener('focus',()=>{showSugs(endSuggest,endInput,'end')});
-endInput.addEventListener('blur',()=>setTimeout(()=>endSuggest.style.display='none',200));
-// ===== KEYBOARD =====
-startInput.addEventListener('keydown',e=>{if(e.key==='Enter'){const s=startSuggest.querySelector('.suggest-item');if(s)s.click();else if(startInput.value){startRoom=startInput.value;endInput.focus()}}});
-endInput.addEventListener('keydown',e=>{if(e.key==='Enter'){const s=endSuggest.querySelector('.suggest-item');if(s)s.click();else if(endInput.value){endRoom=endInput.value;doRoute()}}});
-// ===== EXAMPLES =====
-document.querySelectorAll('[data-room]').forEach(b=>{b.addEventListener('click',()=>{startRoom='';endRoom='';startInput.value=b.dataset.room;startRoom=b.dataset.room;endInput.focus()})});
+function getSugs(q){const u=q.toUpperCase();if(!u)return[];return ROOMS.filter(r=>r.code.includes(u)).slice(0,8)}
+function showS(c,inp,m){c.innerHTML='';const s=getSugs(inp.value);if(!s.length){c.style.display='none';return}md=m;s.forEach(r=>{const b=document.createElement('button');b.className='si';b.innerHTML='<span class="cd">'+r.code+'</span><span class="mt">ชั้น '+r.floor+'</span>';b.onmousedown=()=>{inp.value=r.code;if(md==='start')sr=r.code;else er=r.code;c.style.display='none';if(sr&&er)go()};c.appendChild(b)});c.style.display='block'}
+si.addEventListener('input',()=>showS(ss,si,'start'));si.addEventListener('focus',()=>showS(ss,si,'start'));si.addEventListener('blur',()=>setTimeout(()=>ss.style.display='none',200));
+ei.addEventListener('input',()=>showS(es,ei,'end'));ei.addEventListener('focus',()=>showS(es,ei,'end'));ei.addEventListener('blur',()=>setTimeout(()=>es.style.display='none',200));
+si.addEventListener('keydown',e=>{if(e.key==='Enter'){const s=ss.querySelector('.si');if(s)s.click();else if(si.value){sr=si.value;ei.focus()}}});
+ei.addEventListener('keydown',e=>{if(e.key==='Enter'){const s=es.querySelector('.si');if(s)s.click();else if(ei.value){er=ei.value;go()}}});
+function pick(c){si.value=c;sr=c;ei.focus()}
 // ===== ROUTE =====
-function doRoute(){const s=startRoom||startInput.value,e=endRoom||endInput.value;if(!s||!e)return;if(s===e){alert('⛔ จุดเริ่มต้นและจุดหมายต้องเป็นคนละห้องกัน');return}const r=calcRoute(s,e);routeResult=r;showRoute=true;startRoom=s;endRoom=e;renderRoute(r);renderDirections(r,s,e)}
-function renderRoute(r){svg.innerHTML='';startDot.style.display='none';endDot.style.display='none';const img=document.querySelector('.map-view img[style*="block"]');if(!img)return;const cw=img.clientWidth||800,ch=img.clientHeight||600;const xs=cw/100,ys=ch/100;svg.setAttribute('width',cw);svg.setAttribute('height',ch);svg.setAttribute('viewBox','0 0 '+cw+' '+ch);const defs=document.createElementNS('http://www.w3.org/2000/svg','defs');defs.innerHTML='<filter id="gl"><feGaussianBlur stdDeviation="2.5"/><feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge></filter>';svg.appendChild(defs);const l=LAYOUTS[curFloor];if(l){[l.e1,l.e2].forEach(e=>{const g=document.createElementNS('http://www.w3.org/2000/svg','g');g.setAttribute('transform','translate('+(e[0]*xs)+','+(e[1]*ys)+')');const r=document.createElementNS('http://www.w3.org/2000/svg','rect');r.setAttribute('x','-12');r.setAttribute('y','-12');r.setAttribute('width','24');r.setAttribute('height','24');r.setAttribute('rx','4');r.setAttribute('fill','#1565c0');r.setAttribute('opacity','0.85');r.setAttribute('stroke','#fff');r.setAttribute('stroke-width','2');g.appendChild(r);const t=document.createElementNS('http://www.w3.org/2000/svg','text');t.setAttribute('text-anchor','middle');t.setAttribute('dy','4');t.setAttribute('font-size','14');t.setAttribute('fill','#fff');t.textContent='🛗';g.appendChild(t);svg.appendChild(g)})}
-let firstWalk=null,lastWalkEnd=null;r.steps.forEach(step=>{if(step.t==='walk'&&step.f===curFloor&&step.path&&step.path.length>=2){const pts=step.path.map(p=>(p[0]*xs).toFixed(1)+','+(p[1]*ys).toFixed(1)).join(' ');const gl=document.createElementNS('http://www.w3.org/2000/svg','polyline');gl.setAttribute('points',pts);gl.setAttribute('fill','none');gl.setAttribute('stroke','#1565c0');gl.setAttribute('stroke-width','8');gl.setAttribute('stroke-linecap','round');gl.setAttribute('stroke-linejoin','round');gl.setAttribute('opacity','0.3');gl.setAttribute('filter','url(#gl)');svg.appendChild(gl);const ln=document.createElementNS('http://www.w3.org/2000/svg','polyline');ln.setAttribute('points',pts);ln.setAttribute('fill','none');ln.setAttribute('stroke','#1565c0');ln.setAttribute('stroke-width','4');ln.setAttribute('stroke-linecap','round');ln.setAttribute('stroke-linejoin','round');ln.setAttribute('opacity','0.9');svg.appendChild(ln);for(let i=0;i<step.path.length-1;i++){const a=step.path[i],b=step.path[i+1];const ang=Math.atan2(b[1]-a[1],b[0]-a[0])*180/Math.PI;const tx=b[0]*xs,ty=b[1]*ys,sz=6;const arr=document.createElementNS('http://www.w3.org/2000/svg','polygon');arr.setAttribute('points',[tx,ty,tx-sz*Math.cos((ang-30)*Math.PI/180),ty-sz*Math.sin((ang-30)*Math.PI/180),tx-sz*Math.cos((ang+30)*Math.PI/180),ty-sz*Math.sin((ang+30)*Math.PI/180)].join(','));arr.setAttribute('fill','#1565c0');arr.setAttribute('opacity','0.85');svg.appendChild(arr)}if(!firstWalk&&step.path.length>0)firstWalk=step.path[0];lastWalkEnd=step.path[step.path.length-1]}});
-if(firstWalk){startDot.style.left=(firstWalk[0]*xs)+'px';startDot.style.top=(firstWalk[1]*ys)+'px';startDot.style.display='block'}
-if(lastWalkEnd){endDot.style.left=(lastWalkEnd[0]*xs)+'px';endDot.style.top=(lastWalkEnd[1]*ys)+'px';endDot.style.display='block'}}
-function renderDirections(r,s,e){dirCard.style.display='block';emptyState.style.display='none';const sf=+s[3],ef=+e[3];dirHeaderRooms.innerHTML='🟢 '+s+' (ชั้น '+sf+') → 🔴 '+e+' (ชั้น '+ef+')';const dd=describeDetailed(s,e);dirDetail.innerHTML=dd.map(d=>'<div class="dstep">'+d+'</div>').join('');dirSteps.innerHTML='';r.steps.forEach((step,i)=>{const d=document.createElement('div');d.className='dir-step';const nc=step.t==='walk'?'walk':step.t==='lift'?'lift':'arr';d.innerHTML='<div class="step-num '+nc+'">'+(i+1)+'</div><div class="step-text">'+step.txt+'</div>';if(step.t==='walk'){d.addEventListener('click',()=>{curFloor=step.f;document.querySelectorAll('.floor-tab').forEach(t=>t.classList.toggle('active',+t.dataset.f===curFloor));showFloor(curFloor)})}dirSteps.appendChild(d)});routeBar.className='route-bar show';routeBar.innerHTML='<span class="tag g">🟢 '+s+'</span> <span>→</span> <span class="tag r">🔴 '+e+'</span> <span>·</span> <span>ชั้น '+sf+' → '+ef+'</span> <span>·</span> <span>'+(r.steps.length-1)+' ขั้นตอน</span>';// show first floor
-curFloor=r.floors[0];document.querySelectorAll('.floor-tab').forEach(t=>t.classList.toggle('active',+t.dataset.f===curFloor));showFloor(curFloor)}
-clearBtn.addEventListener('click',()=>{showRoute=false;routeResult=null;startRoom='';endRoom='';startInput.value='';endInput.value='';svg.innerHTML='';startDot.style.display='none';endDot.style.display='none';dirCard.style.display='none';routeBar.className='route-bar';emptyState.style.display='block'});
+function go(){const s=sr||si.value,e=er||ei.value;if(!s||!e)return;if(s===e){alert('⛔ ต้องเป็นคนละห้อง');return}
+const sf=+s[3],ef=+e[3];const dir=sf<ef?'ขึ้น':'ลง';const d=Math.abs(ef-sf);const st=[];const fl=new Set();
+if(sf===ef){st.push({t:'walk',txt:'เดินจาก '+s+' ไป '+e+' ในชั้น '+sf,f:sf});fl.add(sf)}
+else{const ns=wing(s)==='left'?'ซ้าย':'ขวา',ne=wing(e)==='left'?'ซ้าย':'ขวา'
+st.push({t:'walk',txt:'เดินจาก '+s+' ไปลิฟต์'+ns+' (ชั้น '+sf+')',f:sf});fl.add(sf)
+st.push({t:'lift',txt:'🛗 ขึ้นลิฟต์'+dir+'ไปชั้น '+ef+' ('+d+' ชั้น)'})
+for(let m=Math.min(sf,ef)+1;m<Math.max(sf,ef);m++)fl.add(m)
+st.push({t:'walk',txt:'ถึงชั้น '+ef+' เดินจากลิฟต์'+ne+' ไป '+e,f:ef});fl.add(ef)}
+st.push({t:'arr',txt:'📍 ถึง '+e+' ชั้น '+ef+' แล้ว'});rr={steps:st,floors:[...fl].sort()};sh=true;sr=s;er=e;render();renderDirs(st,s,e)}
+function clearR(){sh=false;rr=null;sr='';er='';si.value='';ei.value='';rsvg.innerHTML='';sd.style.display='none';ed.style.display='none';dc.style.display='none';rb.className='rb';es0.style.display='block'}
+cb.addEventListener('click',clearR);
+// ===== RENDER =====
+function xfr(f){cf=f;document.querySelectorAll('.ftb').forEach(b=>b.classList.toggle('on',+b.textContent.replace(/[^\d]/g,'')===f));showFloor(f)}
+function render(){const s=sr,e=er;if(!rr)return;rsvg.innerHTML='';sd.style.display='none';ed.style.display='none';
+const img=mv.querySelector('img[style*="block"]');if(!img)return;
+// Draw room polygons
+const ns='http://www.w3.org/2000/svg';
+(POLY[cf]||[]).forEach(p=>{const code=p[0],pts=p[1];const poly=document.createElementNS(ns,'polygon');poly.setAttribute('points',pts);
+const isStart=code===sr,isEnd=code===er,isHover=code===hr;
+let fill='transparent',stroke='transparent',sw='0.5';
+if(isStart){fill='rgba(46,125,50,0.25)';stroke='#2e7d32';sw='2'}
+else if(isEnd){fill='rgba(211,47,47,0.25)';stroke='#d32f2f';sw='2'}
+else if(isHover){fill='rgba(21,101,192,0.15)';stroke='#1565c0';sw='1.5'}
+poly.setAttribute('fill',fill);poly.setAttribute('stroke',stroke);poly.setAttribute('stroke-width',sw);
+poly.style.cursor='pointer';poly.style.transition='all .15s';
+const title=document.createElementNS(ns,'title');title.textContent=code;poly.appendChild(title);
+poly.addEventListener('mouseenter',()=>{hr=code;showFloor(cf)});
+poly.addEventListener('mouseleave',()=>{hr='';showFloor(cf)});
+poly.addEventListener('click',()=>{if(!sr||er){si.value=code;sr=code;ei.focus()}else{pick(code)}});
+rsvg.appendChild(poly);
+// Room label
+const c=center(pts);
+const txt=document.createElementNS(ns,'text');txt.setAttribute('x',c.x);txt.setAttribute('y',c.y);
+txt.setAttribute('text-anchor','middle');txt.setAttribute('dominant-baseline','middle');
+txt.setAttribute('font-size',code.includes('/')?'9':'11');txt.setAttribute('fill','#444');
+txt.setAttribute('font-weight',(isStart||isEnd||isHover)?'bold':'500');
+txt.style.pointerEvents='none';txt.style.textShadow='0 0 3px white,0 0 6px white';
+txt.textContent=code.replace('ICT','');rsvg.appendChild(txt)});
+// Elevator markers
+[[180,250,'ลิฟต์ซ้าย'],[1020,250,'ลิฟต์ขวา']].forEach(e=>{
+const g=document.createElementNS(ns,'g');
+const r=document.createElementNS(ns,'rect');r.setAttribute('x',e[0]-18);r.setAttribute('y',e[1]-18);r.setAttribute('width','36');r.setAttribute('height','36');r.setAttribute('rx','6');r.setAttribute('fill','#1565c0');r.setAttribute('opacity','0.85');r.setAttribute('stroke','#fff');r.setAttribute('stroke-width','2');g.appendChild(r);
+const t=document.createElementNS(ns,'text');t.setAttribute('x',e[0]);t.setAttribute('y',e[1]+1);t.setAttribute('text-anchor','middle');t.setAttribute('font-size','20');t.setAttribute('fill','#fff');t.textContent='🛗';g.appendChild(t);
+const tl=document.createElementNS(ns,'text');tl.setAttribute('x',e[0]);tl.setAttribute('y',e[1]+22);tl.setAttribute('text-anchor','middle');tl.setAttribute('font-size','9');tl.setAttribute('fill','#1565c0');tl.setAttribute('font-weight','bold');tl.textContent=e[2];g.appendChild(tl);
+rsvg.appendChild(g)});
+// Start/end dots
+const sc=ROOMS.find(r=>r.code===sr&&r.floor===cf)||ROOMS.find(r=>r.code===sr);
+const ec=ROOMS.find(r=>r.code===er&&r.floor===cf)||ROOMS.find(r=>r.code===er);
+if(sc){const c=center(sc.pts);sd.style.left=(c.x/1200*100)+'%';sd.style.top=(c.y/840*100)+'%';sd.style.display='block'}
+if(ec){const c=center(ec.pts);ed.style.left=(c.x/1200*100)+'%';ed.style.top=(c.y/840*100)+'%';ed.style.display='block'}}
+function renderDirs(st,s,e){dc.style.display='block';es0.style.display='none';const sf=+s[3],ef=+e[3];dhr.innerHTML='🟢 '+s+' → 🔴 '+e;
+const dd2=$('dd');const ws=wing(s),we=wing(e);const nws=ws==='left'?'ปีกซ้าย':'ปีกขวา',nwe=we==='left'?'ปีกซ้าย':'ปีกขวา';const dets=[];
+if(sf===ef){dets.push('🚶 ออกจาก <b>'+s+'</b> ('+nws+')');dets.push('➡️ '+(ws===we?'ตรงไปตามทางเดิน':'เดินข้ามไป'+nwe));dets.push('📍 ถึง <b>'+e+'</b> ('+nwe+')'+(we==='left'?' อยู่ซ้ายมือ':' อยู่ขวามือ'))}
+else{const dir=sf<ef?'ขึ้น':'ลง';const ns=ws==='left'?'ซ้าย':'ขวา',ne=we==='left'?'ซ้าย':'ขวา'
+dets.push('🚶 ออกจาก <b>'+s+'</b> ('+nws+', ชั้น '+sf+')');dets.push('➡️ เดินไปลิฟต์ฝั่ง'+ns);dets.push('🛗 ขึ้นลิฟต์'+dir+'ไป <b>ชั้น '+ef+'</b> ('+Math.abs(ef-sf)+' ชั้น)')
+dets.push('🚶 เมื่อถึงชั้น '+ef+' ออกจากลิฟต์ฝั่ง'+ne);dets.push('➡️ '+(ne===ns?'ตรงไปตามทางเดิน':'เดินข้ามไปฝั่ง'+ne));dets.push('📍 เลี้ยวเข้า'+nwe+' — จะพบ <b>'+e+'</b>'+(we==='left'?' อยู่ซ้ายมือ':' อยู่ขวามือ'))}
+dd2.innerHTML=dets.map(d=>'<div class="ds">'+d+'</div>').join('');
+dsx.innerHTML='';st.forEach((step,i)=>{const d=document.createElement('div');d.className='dx';const nc=step.t==='walk'?'wk':step.t==='lift'?'lf':'ar';d.innerHTML='<div class="sn '+nc+'">'+(i+1)+'</div><div class="st">'+step.txt+'</div>';if(step.t==='walk')d.addEventListener('click',()=>xfr(step.f));dsx.appendChild(d)});
+rb.className='rb on';rb.innerHTML='<span class="tg g">🟢 '+s+'</span> <span>→</span> <span class="tg r">🔴 '+e+'</span> <span>·</span> <span>ชั้น '+sf+' → '+ef+'</span> <span>·</span> <span>'+(st.length-1)+' ขั้นตอน</span>';
+xfr(rr.floors[0])}
 // ===== SHOW FLOOR =====
-function showFloor(f){for(let i=1;i<=4;i++){const img=$('img'+i);if(img)img.style.display=i===f?'block':'none'}floorLabel.textContent=f;roomTags.innerHTML=ROOMS.filter(r=>r.floor===f).map(r=>'<button onclick="pickRoom(\''+r.code+'\')">'+r.code+'</button>').join('');if(showRoute&&routeResult){const r=renderRoute(routeResult)}}
-function pickRoom(code){startRoom=code;startInput.value=code;endInput.focus()}
+function showFloor(f){for(let i=1;i<=4;i++){const img=$('i'+i);if(img)img.style.display=i===f?'block':'none'}
+fl.textContent=f;
+rt.innerHTML=ROOMS.filter(r=>r.floor===f).map(r=>'<button onclick="pick(\''+r.code+'\')">'+r.code+'</button>').join('');
+if(sh&&rr)render()}
 // ===== RESIZE =====
-window.addEventListener('resize',()=>{if(showRoute&&routeResult)renderRoute(routeResult)});
+window.addEventListener('resize',()=>{if(sh)render()});
 // ===== INIT =====
-document.querySelector('.floor-tab[data-f="1"]').classList.add('active');
 showFloor(1);
 </script>
 </body>
